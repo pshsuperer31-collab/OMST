@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriental Mind Scan Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="db.js"></script>
+    <script src="db2.js"></script>
+    <script src="db3.js"></script>
+    <script src="db4.js"></script>
+    <script src="db5.js?v=2"></script>
+    <script src="db6.js?v=2"></script>
+    <script src="db7.js?v=2"></script>
+    <script src="db8.js?v=2"></script>
+    <script src="db9.js?v=2"></script>
+    <style>
+    :root { 
+        --burgundy: #800020; 
+        --bg-light: #ffffff; 
+        --text-dark: #2c3e50; 
+        /* 시스템 기본 폰트 설정 (따로 저장 안 해도 나오는 폰트) */
+        --font-main: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        --font-serif: "AppleMyungjo", "Apple Myungjo", "NanumMyeongjo", "Nanum Myeongjo", "Batang", "serif";
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        display: block; /* flex 대신 일반 블록으로 변경 */
+        background: #f8f9fa;
+        overflow-y: auto;
+    }
+
+    .container {
+    width: 92%;
+    max-width: 600px;
+    margin: 20px auto 40px auto; /* 좌우 자동 중앙 */
+    background: #fff;
+    padding: 25px;
+    border-radius: 25px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+    text-align: center; /* 내부 텍스트 모두 중앙 */
+    
+    /* 높이 제한 해제 */
+    height: auto !important;
+    display: block !important;
+    }
+
+    /* 2. 헤더 내부의 위쪽 여백 줄이기 (50px -> 10px) */
+#quiz-ui .header {
+    padding-top: 10px !important; /* 로고 바로 위 여백 */
+    margin-bottom: 30px; 
+    text-align: center;
+}
+
+/* 3. 결과 영역의 헤더도 동일하게 적용 */
+#result-area .header {
+    padding-top: 10px !important;
+    min-height: 0; /* 불필요한 높이 제거 */
+}
+
+    /* [수정] 로고 영역 스타일 */
+    .header {
+        width: 100%;
+        padding: 40px 0 20px 0;
+        text-align: center;
+        background: #fff;
+    }
+    
+  /* ANALYSIS REPORT 글자 완전 제거 */
+    .header h1, .header p { 
+        display: none !important; 
+    }
+
+.header p { 
+    display: none; /* 서브 타이틀 강제 숨김 */
+
+    /* [추가] 로고 이미지 스타일: 중앙에 땋! 위치하고 크기 조절 */
+logo-area img {
+        width: 100%;
+        max-width: 420px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+}
+
+    .logo-img { width: 120px; height: auto; margin-bottom: 15px; cursor: pointer; transition: 0.3s; }
+    .logo-img:hover { transform: scale(1.05); }
+
+    /* [Mobile Optimization] */
+
+    /* 모바일 전용 로고 크기 조정 */
+@media (max-width: 600px) {
+    .header { padding: 40px 0 20px 0; }
+    .logo-area img { max-width: 280px; } /* 모바일에서는 화면에 맞게 */
+}
+    @media (max-width: 600px) {
+        .container { padding: 25px 18px !important; width: 94% !important; }
+        .header h1 { font-size: 2.2rem !important; }
+        .header p { font-size: 0.95rem !important; letter-spacing: 3px !important; }
+        .res-symbol { font-size: 4.8rem !important; } /* 괘 이미지 대폭 확대 */
+        .res-hex-title { font-size: 2.4rem !important; }
+        .res-binary { font-size: 0.9rem !important; }
+        
+        /* 8단계 프로필 및 상세 카드 그리드 강제 2열 */
+        .mobile-grid-2 { 
+            display: grid !important; 
+            grid-template-columns: 1fr 1fr !important; 
+            gap: 10px !important; 
+        }
+        .compact-card { padding: 15px !important; }
+        .compact-font { font-size: 0.82rem !important; line-height: 1.5 !important; }
+        .compact-title { font-size: 0.8rem !important; margin-bottom: 4px !important; }
+    }
+
+    /* [나침반 바늘 & 프로그레스 바] 바늘 움직임 텐션 추가 */
+    .progress-wrapper { 
+        position: relative; 
+        width: 100%; 
+        margin: 60px 0 40px 0;
+    }
+    .progress-container { 
+        width: 100%; 
+        height: 12px; 
+        background: #eee; 
+        border-radius: 10px; 
+        overflow: hidden; 
+    }
+    .progress-fill { 
+        height: 100%; 
+        background: var(--burgundy); 
+        width: 0%; 
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    
+    .arrow-indicator {
+        position: absolute;
+        top: -45px;
+        left: 0%; /* JS가 이 값을 0% -> 100%로 바꿀 겁니다 */
+        transform: translateX(-50%);
+        font-size: 32px;
+        /* 나침반 바늘처럼 쫀득한 움직임을 주는 텐션 값 */
+        transition: left 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        animation: bounce 1.8s infinite;
+        z-index: 10;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translate(-50%, 0); }
+        50% { transform: translate(-50%, -10px); }
+    }
+
+    /* 2. 질문 영역: 긴 글도 예쁘게 담는 그릇 */
+    .q-text { 
+        font-family: var(--font-apple-serif); 
+        font-size: 1.8rem; 
+        font-weight: 600; 
+        color: #1a1a1a; 
+        line-height: 1.7; /* 행간을 아주 미세하게 줄여 긴 문장의 이질감 해소 */
+        letter-spacing: -0.3px; 
+        word-break: keep-all; 
+        /* 고정 높이 대신 최소 높이만 설정하고 나머지는 유연하게 */
+        min-height: 180px; 
+        height: auto; 
+        padding: 20px 30px 40px 30px; /* 아래쪽 여백을 더 줘서 옵션과 분리 */
+        margin-bottom: 45px;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* 질문 텍스트 정렬 */
+#question-text {
+    text-align: center;
+    word-break: break-word; /* 모바일에서 깨짐 방지용 기본 설정 전환 */
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+/* 버튼들을 감싸는 영역을 중앙 정렬 */
+#options-container {
+    display: flex;
+    flex-direction: column; /* 세로로 배치 */
+    align-items: center;    /* 가운데 정렬 */
+    gap: 15px;              /* 버튼 사이 간격 */
+    width: 100%;
+}
+
+/* 버튼 자체의 스타일 수정 */
+.option-btn {
+    width: 100%;
+    max-width: 400px;       /* 버튼이 너무 길어지지 않게 제한 */
+    text-align: center;
+    justify-content: center; /* 내부 텍스트 중앙 */
+}
+
+    /* 3. 옵션 버튼 사이의 간격 조정 */
+    .options { 
+        display: grid; 
+        gap: 10px; 
+        max-width: 550px; 
+        margin: 0 auto 30px auto; /* 하단 이전버튼과 간격 확보 */
+    }
+    .opt-btn { padding: 18px; border: 1.5px solid #eee; border-radius: 15px; cursor: pointer; transition: 0.2s; font-size: 1.15rem; background: #fff; font-weight: 600; }
+    .opt-btn:hover { border-color: var(--burgundy); background: #fff5f5; color: var(--burgundy); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(128,0,32,0.1); }
+
+    /* 결과 페이지 디자인 */
+    #result-area {
+    display: none; /* 기본은 숨김 */
+    width: 100%;
+    height: auto !important; /* 높이 제한 해제 */
+    min-height: 100vh;
+    overflow-y: visible !important; /* 내용이 넘치면 무조건 보여줌 */
+    padding-bottom: 50px; /* 맨 밑 버튼이 바닥에 붙지 않게 여백 */
+}
+/* 리포트 몸통 */
+#report-body {
+        display: flex;
+        flex-direction: column; /* 위에서 아래로 */
+        align-items: center;
+    }
+
+    #report-body > div {
+        width: 100%; /* 각 섹션이 가로를 꽉 채우며 순서대로 배치됨 */
+    }
+    .result-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; margin-bottom: 30px; }
+
+    /* 1. 수식어(질서를 바로잡는...) 크기 키우기 */
+    .result-subtitle { 
+        font-family: var(--font-serif); 
+        font-size: 1.75rem; /* 아주 조금 더 키웠습니다 */
+        font-weight: 700; 
+        color: var(--burgundy); 
+        text-align: center; 
+        display: block; 
+        margin-bottom: 10px;
+    }
+
+    .iching-symbol { font-size: 9rem; color: var(--burgundy); text-align: center; }
+    .hex-full-name { font-size: 2.8rem; font-weight: 900; text-align: center; }
+    .report-section { background: #fafafa; padding: 25px; border-radius: 18px; border: 1px solid #f0f0f0; margin-bottom: 20px; }
+    .section-title { font-weight: 800; color: var(--burgundy); font-size: 1.2rem; margin-bottom: 12px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+    
+    .highlight-box { background: var(--burgundy); color: #fff; padding: 25px; border-radius: 18px; margin-bottom: 25px; text-align: center; }
+    .highlight-box h3 { color: #ffd700; margin: 0 0 10px 0; }
+
+    /* 모바일 최적화 (화면 너비 768px 이하일 때 자동 실행) */
+@media screen and (max-width: 768px) {
+    /* 0. 차트 및 괘 그림 모바일에서 세로로 배치 (찌그러짐 방지) */
+    .result-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    /* 1. 전체 컨테이너 여백 조정 */
+    body, .container { 
+        padding: 15px !important; 
+    }
+
+    /* 2. 모든 섹션의 패딩과 마진 축소 (답답함 해소) */
+    .report-section { 
+        padding: 25px 20px !important; 
+        margin-bottom: 40px !important; 
+        border-radius: 15px !important;
+    }
+
+    /* 3. 제목(섹션 타이틀) 크기 최적화 */
+    .section-title { 
+        font-size: 1.3rem !important; 
+        margin-bottom: 20px !important; 
+    }
+
+    /* 4. 본문 글자 크기 (전체적으로 살짝 슬림하게) */
+    .detail-item, .zen-content, .advice-content, p { 
+        font-size: 1.1rem !important; 
+        line-height: 1.5 !important; 
+    }
+
+    /* 4-1. 특대형 텍스트 및 로고 최적화 (모바일용 강제 축소) */
+    .header h1 {
+        font-size: 2.2rem !important;
+    }
+    .iching-symbol {
+        font-size: 5.5rem !important;
+    }
+    .hex-full-name {
+        font-size: 1.8rem !important;
+    }
+    .q-text {
+        font-size: 1.25rem !important;
+        padding: 15px 15px 30px 15px !important;
+        margin-bottom: 25px !important;
+        word-break: break-word !important; /* 모바일에서 글자 잘림 무조건 방지 */
+    }
+
+    /* 통합 시너지 카드 모바일 폭 최적화 */
+    .potential-synergy-card {
+        padding: 20px !important;
+        margin-top: 20px !important;
+    }
+    .omega-bg {
+        font-size: 4rem !important;
+        top: -5px !important;
+        right: -5px !important;
+    }
+    .synergy-text {
+        word-break: break-word !important;
+        font-size: 1rem !important;
+    }
+
+    /* 5. 궁합 카드(Grid) 세로 정렬 */
+    .match-grid { 
+        display: block !important; 
+    }
+    .match-card { 
+        margin-bottom: 15px !important; 
+        width: 100% !important; 
+    }
+
+    /* 6. 질문지(Input/Button) 모바일 대응 */
+    input, select, button {
+        font-size: 1rem !important;
+        padding: 12px !important;
+        width: 100% !important; /* 모바일에선 버튼이 꽉 차야 누르기 편해요 */
+    }
+
+    /* 1. 차트(캔버스)가 화면 밖으로 나가지 않게 강제 조정 */
+    canvas {
+        max-width: 100% !important;
+        height: auto !important; /* 가로 세로 비율 유지 */
+    }
+
+    .chart-outer-wrap {
+    width: 92% !important; 
+    max-width: 480px; /* 너무 커서 부담스럽지 않게 조절 */
+    margin: 0 auto 50px auto;
+    padding: 25px; 
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid #f0f0f0;
+    box-sizing: border-box; /* 패딩이 너비 안에 포함되게 함 */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.03); 
+    overflow: hidden; 
+}
+
+    /* 2. 괘 그림(이미지) 최적화 */
+    .hexagram-img, .chart-wrapper img {
+        width: 100% !important;   /* 가로를 꽉 채우되 */
+        max-width: 250px !important; /* 모바일에선 너무 크면 부담스러우니 상한선 지정 */
+        height: auto !important;
+        display: block !important;
+        margin: 0 auto 20px !important; /* 가운데 정렬 */
+    }
+
+    /* 3. 차트를 감싸는 박스가 있다면 */
+    .chart-container {
+        width: 100% !important;
+        padding: 0 !important;
+        overflow: hidden !important; /* 삐져나온 부분 숨김 */
+    }
+
+    /* 모바일 최적화 */
+    @media (max-width: 600px) {
+        .container { padding: 25px 18px !important; width: 94% !important; }
+        .logo-area img { max-width: 280px; }
+        .q-text { font-size: 1.25rem !important; min-height: 120px !important; }
+    }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-ui">
+    <div class="header" style="padding-top: 50px; margin-bottom: 40px; text-align: center;">
+        <img src="Omst_Logo_final.svg" alt="OMST Logo" style="width: 95%; max-width: 500px; height: auto; display: block; margin: 0 auto;">
+        
+        <p style="margin: 15px 0 0 0; color: #546E7A; font-family: 'Arial', sans-serif; font-size: 0.95rem; letter-spacing: 4px; text-transform: uppercase; font-weight: 300;">
+            Decode Your Innate Blueprint
+        </p>
+    </div>
+
+    <div class="progress-wrapper" style="margin: 20px 0 40px 0;">
+        <div class="progress-container">
+            <div class="progress-fill" id="progress-bar"></div>
+        </div>
+    </div>
+
+        <div id="q-container"></div>
+    </div>
+
+    <div id="result-area" style="display:none;">
+    <div class="header"></div>
+    <div id="report-body"></div> 
+    
+    <div style="text-align:center; margin-top:30px;">
+        <button onclick="location.reload()" style="padding:15px 40px; background:var(--burgundy); color:#fff; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1.1rem;">테스트 다시 하기</button>
+    </div>
+</div>
+</div>
+
+<script>
+    // 1. [추가] Fisher-Yates 셔플 알고리즘 함수 (스크립트 최상단에 배치)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // 질문 데이터 (기존과 동일하므로 로직만 유지)
+    const questions = [
+    // --- 1. [건(乾): 주도/완벽] ---
+    { type: "outer", trigram: "건", weight: 1.2, text: "어떤 집단에 가든 내 목소리가 영향력을 발휘하고 중심이 되어야 직성이 풀린다." },
+    { type: "inner", trigram: "건", text: "타인이 보지 않는 곳에서도 스스로에게 엄격한 기준을 적용하며 자신을 채찍질한다." },
+    { type: "outer", trigram: "건", text: "운전 시 앞차가 흐름을 방해하면 주저 없이 리드하며 상황을 제어하려 한다." }, // 운전습관
+    { type: "inner", trigram: "건", weight: 1.2, text: "실패를 용납하는 것이 매우 힘들며, 항상 최고여야 한다는 내적 압박을 느낀다." }, // 위기관리
+    { type: "outer", trigram: "건", text: "단체에서 최종 의사결정과 책임을 맡는 리더 역할을 맡을 때 에너지가 솟는다." },
+    { type: "inner", trigram: "건", text: "누구의 도움 없이 내 능력만으로 문제를 해결했을 때 가장 큰 존재감을 느낀다." },
+    { type: "outer", trigram: "건", weight: 1.5, text: "중요한 협상에서 내 페이스를 끝까지 유지하여 상대의 승낙을 받아내는 편이다." },
+    { type: "inner", trigram: "건", text: "한 번 정한 목표는 주변의 만류에도 불구하고 끝까지 밀어붙이는 강한 독립심이 있다." },
+    { type: "outer", trigram: "건", weight: -0.5, text: "나는 남의 지시를 따르는 조력자 역할이 훨씬 마음 편하고 좋다." }, // [감점] 건 기질 반대
+
+    // --- 2. [태(兌): 소통/기쁨] ---
+    { type: "outer", trigram: "태", weight: 1.2, text: "가식 없는 웃음과 재치 있는 입담으로 주변 분위기를 즉각적으로 밝게 만든다." },
+    { type: "inner", trigram: "태", text: "지적인 깨달음이나 소소한 감동을 누군가와 공유하지 못하면 답답함을 느낀다." },
+    { type: "outer", trigram: "태", text: "카톡 단톡방에서 이모티콘과 리액션으로 대화의 흐름을 유쾌하게 주도한다." }, // 카톡답장
+    { type: "inner", trigram: "태", text: "사람들의 아픔을 위로해 줄 때 내 영혼도 함께 치유받는다는 느낌을 받는다." },
+    { type: "outer", trigram: "태", text: "딱딱한 회의 환경에서도 유머를 던져 긴장을 해소하고 소통을 돕는 편이다." },
+    { type: "inner", trigram: "태", weight: 1.2, text: "혼자 있을 때보다 속마음을 온전히 털어놓을 수 있는 대화 상대를 만날 때 생기가 돈다." },
+    { type: "outer", trigram: "태", text: "처음 보는 사람과도 금방 친해지며, 낯선 여행지에서도 현지인과 거리낌 없이 대화한다." }, // 여행스타일
+    { type: "inner", trigram: "태", text: "예술적 감성이나 맛있는 음식을 즐기는 것에서 인생의 큰 가치를 찾는다." },
+    { type: "outer", trigram: "태", weight: -0.5, text: "사람들과 어울리는 것보다 혼자서 침묵을 지킬 때 더 에너지가 충전된다." }, // [감점] 태 기질 반대
+
+    // --- 3. [리(離): 통찰/확신] ---
+    { type: "outer", trigram: "리", weight: 1.2, text: "비효율적이거나 시스템적 오류를 보면 그 자리에서 직설적으로 지적하고 바로잡는다." },
+    { type: "inner", trigram: "리", text: "세상의 이치를 명확히 깨닫고 싶은 지적 욕구가 강하며, 모르면 잠을 못 잘 정도로 집요하다." },
+    { type: "outer", trigram: "리", text: "여행을 갈 때 엑셀이나 앱을 활용해 분 단위로 동선과 맛집 평점을 분석한다." }, // 여행스타일
+    { type: "inner", trigram: "리", weight: 1.2, text: "나의 독창적인 감각이나 성과가 세상 사람들에게 화려하게 인정받기를 갈구한다." },
+    { type: "outer", trigram: "리", text: "사건의 핵심을 꿰뚫어 보고 냉철하게 비판하여 주변에서 '칼 같다'는 소리를 듣는다." },
+    { type: "inner", trigram: "리", text: "누군가 나의 가치를 몰라봐 주거나 과소평가할 때 깊은 분노를 느낀다." },
+    { type: "outer", trigram: "리", weight: 1.3, text: "데이터와 논리가 부족한 제안은 아무리 친한 사람이라도 쉽게 받아들이지 않는다." },
+    { type: "inner", trigram: "리", text: "복잡한 현상을 단순하고 명쾌한 이론으로 정리해서 남들에게 설명하는 것을 즐긴다." },
+    { type: "outer", trigram: "리", weight: -0.5, text: "정답이 없는 모호한 상황도 '그럴 수 있지'라며 너그럽게 넘어가는 편이다." }, // [감점] 리 기질 반대
+
+    // --- 4. [진(震): 돌격/개척] ---
+    { type: "outer", trigram: "진", weight: 1.2, text: "정체된 판을 깨뜨리고 새로운 시작을 향해 돌격하는 과정에서 짜릿함을 느낀다." },
+    { type: "inner", trigram: "진", text: "기존의 질서를 깨뜨리고 나만의 독창적 시스템을 구축하고 싶은 야망이 크다." },
+    { type: "outer", trigram: "진", text: "운전 시 정체가 시작되면 지체 없이 새로운 우회 경로를 찾아 모험을 시도한다." }, // 운전습관
+    { type: "inner", trigram: "진", weight: 1.2, text: "한 번 꽂힌 일에는 앞뒤 재지 않고 뛰어들지만, 결과가 늦어지면 금방 초조해진다." },
+    { type: "outer", trigram: "진", text: "돌발 위기가 닥치면 당황하기보다 에너지가 솟구치며 정면 돌파를 선택한다." },
+    { type: "inner", trigram: "진", text: "반복되는 일상에 금방 무료함을 느끼며, 끊임없이 새로운 자극과 도전거리를 찾는다." },
+    { type: "outer", trigram: "진", weight: 1.5, text: "체계가 잡히길 기다리기보다 일단 저지르고 수습하며 현장의 역동성을 주도한다." },
+    { type: "inner", trigram: "진", text: "내 아이디어가 세상을 뒤흔드는 파급력을 가지길 원하며 열정적으로 행동한다." },
+    { type: "outer", trigram: "진", weight: -0.5, text: "새로운 시작보다는 이미 주어진 일을 안정적으로 유지하는 것이 더 좋다." }, // [감점] 진 기질 반대
+
+    // --- 5. [손(巽): 유연/지략] ---
+    { type: "outer", trigram: "손", weight: 1.2, text: "부드러운 화법으로 상대의 마음을 움직여, 결국 내가 원하는 실리를 챙기는 지략가다." },
+    { type: "inner", trigram: "손", text: "내 미래를 설계할 때 발생할 수 있는 사소한 변수까지 머릿속으로 수없이 시뮬레이션한다." },
+    { type: "outer", trigram: "손", text: "전화 연락보다는 텍스트의 뉘앙스를 세심하게 조절할 수 있는 카톡 소통을 선호한다." }, // 전화/카톡
+    { type: "inner", trigram: "손", text: "부족한 점을 보완하기 위해 끊임없이 자기를 수양하고 배우는 과정에서 평온을 얻는다." },
+    { type: "outer", trigram: "손", text: "상황에 따라 태도를 유연하게 바꿀 수 있으며, 사람들과 마찰 없이 스며드는 처세에 능하다." },
+    { type: "inner", trigram: "손", weight: 1.2, text: "소란스러운 외부 활동보다 조용하고 안정된 나만의 공간에서 지식을 탐구하는 시간을 사랑한다." },
+    { type: "outer", trigram: "손", text: "타인을 설득할 때 강요하기보다 상대의 필요를 파악해 서서히 마음을 녹이는 편이다." },
+    { type: "inner", trigram: "손", text: "재물 관리 시 수익성보다는 리스크를 분산하고 치밀하게 포트폴리오를 짜는 편이다." }, // 재물관리
+    { type: "outer", trigram: "손", weight: -0.5, text: "상황이 변해도 처음 정한 태도나 원칙을 절대 바꾸지 않고 고집한다." }, // [감점] 손 기질 반대
+
+    // --- 6. [감(坎): 사색/통찰] ---
+    { type: "outer", trigram: "감", weight: 1.2, text: "리스크가 있는 일에 뛰어들기 전, 발생 가능한 모든 부정적 시나리오를 철저히 계산한다." },
+    { type: "inner", trigram: "감", text: "세상 그 누구에게도 말하지 못한 나만의 비밀스러운 내적 세계가 견고하게 존재한다." },
+    { type: "outer", trigram: "감", text: "사람들이 쉽게 말하지 못하는 숨겨진 의도나 보이지 않는 위험을 본능적으로 감지한다." }, // 위기관리
+    { type: "inner", trigram: "감", weight: 1.2, text: "혼자만의 시간에 인생의 근원적 의미나 인간 심리의 어두운 심연에 대해 깊이 사색한다." },
+    { type: "outer", trigram: "감", text: "속마음을 쉽게 드러내지 않으며, 남들이 모르는 나만의 깊은 고독을 즐기는 편이다." },
+    { type: "inner", trigram: "감", text: "겉으로 보여주는 모습과 달리, 내면에는 말 못 할 고독감이나 불안을 품고 있을 때가 많다." },
+    { type: "outer", trigram: "감", weight: 1.3, text: "어려운 고비가 닥치면 감정을 극도로 억제하고 생존에 가장 유리한 대안을 찾는다." },
+    { type: "inner", trigram: "감", text: "종교나 명상 등 눈에 보이지 않는 정신적인 세계의 깊은 본질에 매료되곤 한다." }, // 종교/철학
+    { type: "outer", trigram: "감", weight: -0.5, text: "복잡한 생각은 딱 질색이며, 고민 없이 단순하게 사는 게 최고라고 생각한다." }, // [감점] 감 기질 반대
+
+    // --- 7. [간(艮): 중심/안정] ---
+    { type: "outer", trigram: "간", weight: 1.2, text: "주변 상황이 급변해도 내가 정한 원칙과 자존심은 끝까지 고수하며 자리를 지킨다." },
+    { type: "inner", trigram: "간", text: "감정의 기복을 드러내지 않으려 노력하며, 마음의 평정을 유지하는 것을 최고의 가치로 삼는다." },
+    { type: "outer", trigram: "간", text: "유행하는 맛집이나 트렌드를 쫓기보다, 내가 늘 가던 익숙하고 검증된 장소를 고집한다." }, // 여행/생활
+    { type: "inner", trigram: "간", weight: 1.2, text: "높은 산처럼 나만의 선을 분명히 긋고, 불필요한 간섭으로부터 내 고요함을 방어한다." },
+    { type: "outer", trigram: "간", text: "말수가 적고 행동이 묵직하여 주변 사람들에게 흔들리지 않는 깊은 신뢰감을 준다." },
+    { type: "inner", trigram: "간", text: "가진 것을 잃지 않고 지켜내는 안정감을 선호하며, 큰 변화보다는 점진적인 안정을 추구한다." },
+    { type: "outer", trigram: "간", text: "충분히 검토되지 않은 일에는 쉽게 움직이지 않으며, 인내심 있게 때를 기다리는 편이다." },
+    { type: "inner", trigram: "간", text: "세상의 소음이나 소셜 미디어의 유행에 휘둘리지 않고 나만의 리듬을 지키려 한다." },
+    { type: "outer", trigram: "간", weight: -0.5, text: "분위기에 잘 휩쓸리며, 주변 사람들의 권유에 따라 결정을 쉽게 바꾸는 편이다." }, // [감점] 간 기질 반대
+
+    // --- 8. [곤(坤): 포용/헌신] ---
+    { type: "outer", trigram: "곤", weight: 1.2, text: "구성원들이 각자 제 실력을 발휘하도록 뒤에서 돕는 조력자일 때 더 깊은 편안함을 느낀다." },
+    { type: "inner", trigram: "곤", text: "사랑하는 사람들을 보필하고 그들에게 헌신하는 과정에서 나의 존재 가치를 확인한다." },
+    { type: "outer", trigram: "곤", text: "누군가 도움을 청하면 내 업무가 바쁘더라도 차마 거절하지 못하고 도와주곤 한다." }, // 인간관계
+    { type: "inner", trigram: "곤", weight: 1.2, text: "넓은 대지처럼 타인의 모든 허물을 포용하고 다 받아주는 무한한 수용력을 지향한다." },
+    { type: "outer", trigram: "곤", text: "내가 빛나는 것보다 내가 속한 가족이나 팀이 화목하게 운영될 때 진정한 보람을 느낀다." },
+    { type: "inner", trigram: "곤", text: "주어진 환경을 억지로 바꾸려 하기보다, 있는 그대로 수용하고 품을 때 마음이 가장 편하다." },
+    { type: "outer", trigram: "곤", text: "연애 관계에서 상대방의 감정에 깊이 공감하며, 그가 필요로 하는 것을 미리 알아서 챙긴다." }, // 연애관계
+    { type: "inner", trigram: "곤", text: "내 주장이나 욕심을 내려놓고 세상의 순리에 맡기며 살아가는 무위(無爲)의 삶을 꿈꾼다." },
+    { type: "outer", trigram: "곤", weight: -0.5, text: "다른 사람의 편의보다는 나의 이익과 목표를 챙기는 것이 우선이다." } // [감점] 곤 기질 반대
+];
+    // 원본 데이터 보존을 위해 복사본([...])을 만들어 섞는 것이 안전합니다.
+    const shuffledQuestions = shuffleArray([...questions]);
+
+    let currentIndex = 0;
+    let answerHistory = []; // [추가] 사용자가 선택한 점수를 기록할 저장소
+    let scores = { 
+        outer: { "건":0,"태":0,"리":0,"진":0,"손":0,"감":0,"간":0,"곤":0 }, 
+        inner: { "건":0,"태":0,"리":0,"진":0,"손":0,"감":0,"간":0,"곤":0 } 
+    };
+    
+    function renderQuestion() {
+    const q = shuffledQuestions[currentIndex]; // 섞인 배열에서 가져옴
+    const container = document.getElementById('q-container');
+    
+    // 1. 진행률 계산 (첫 질문 0%, 마지막 질문 100%)
+    const pct = (currentIndex / (questions.length - 1)) * 100;
+
+    // 2. 프로그레스 바 및 나침반 바늘 업데이트
+    const progressBar = document.getElementById('progress-bar');
+    if (progressBar) progressBar.style.width = `${pct}%`;
+
+    const arrow = document.getElementById('arrow');
+    if (arrow) arrow.style.left = `${pct}%`;
+
+    // 3. HTML 구조 생성 (가운데 정렬 및 간격 조정)
+    container.innerHTML = `
+        <div class="q-card" style="text-align: center; padding: 20px;">
+           <div class="q-text" style="font-family: 'AppleMyungjo', 'Apple Myungjo', 'NanumMyeongjo', serif;">
+                ${q.text}
+            </div>
+            
+            <div class="options" style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                <div class="opt-btn" onclick="handleAnswer(5)" style="width: 100%; max-width: 400px; text-align: center; cursor: pointer;">매우 그렇다</div>
+                <div class="opt-btn" onclick="handleAnswer(4)" style="width: 100%; max-width: 400px; text-align: center; cursor: pointer;">그렇다</div>
+                <div class="opt-btn" onclick="handleAnswer(3)" style="width: 100%; max-width: 400px; text-align: center; cursor: pointer;">보통이다</div>
+                <div class="opt-btn" onclick="handleAnswer(2)" style="width: 100%; max-width: 400px; text-align: center; cursor: pointer;">아니다</div>
+                <div class="opt-btn" onclick="handleAnswer(1)" style="width: 100%; max-width: 400px; text-align: center; cursor: pointer;">매우 아니다</div>
+            </div>
+            
+            <div style="margin-top: 50px; min-height: 30px;">
+                ${currentIndex > 0 ? `
+                    <span onclick="prevQuestion()" style="cursor:pointer; color:#bbb; text-decoration:underline; font-size:0.95rem; font-family: var(--font-main);">
+                        ⬅️ 이전 질문으로 돌아가기
+                    </span>
+                ` : ''}
+            </div>
+        </div>`;
+}
+
+    window.handleAnswer = function(val) {
+        const q = shuffledQuestions[currentIndex]; // 섞인 배열 참조
+        let score = (val - 3) * (q.weight || 1);
+        
+        if (q.type === "outer") scores.outer[q.trigram] += score;
+        else scores.inner[q.trigram] += score;
+
+        // [추가] 선택한 점수를 역사에 기록!
+        answerHistory.push(score);
+
+        if (currentIndex < questions.length - 1) {
+            currentIndex++;
+            renderQuestion();
+        } else {
+            showResult();
+        }
+    };
+
+    // [추가] 이전 질문으로 돌아가는 함수
+    window.prevQuestion = function() {
+        if (currentIndex > 0) {
+            currentIndex--; // 번호를 하나 뒤로
+            const prevScore = answerHistory.pop(); // 가장 최근에 기록한 점수를 꺼냄
+            const q = questions[currentIndex]; // 방금 취소한 질문 정보
+
+            // 더했던 점수를 다시 빼줌
+            if (q.type === "outer") {
+                scores.outer[q.trigram] -= prevScore;
+            } else {
+                scores.inner[q.trigram] -= prevScore;
+            }
+            
+            renderQuestion(); // 화면 다시 그리기
+        }
+    };
+
+   function renderEnergyChart(canvasId, outerPcts, innerPcts) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+ const normalize = (data) => {
+    const values = Object.values(data);
+    const maxVal = Math.max(...values);
+    const minVal = Math.min(...values);
+    const avgVal = values.reduce((a, b) => a + b, 0) / values.length;
+
+    if (maxVal === 0) return values;
+
+    // 편차(에너지의 선명도) 계산
+    const deviation = maxVal - minVal;
+
+    // [핵심 로직] 
+    // 1. 점수들이 너무 비슷하면(편차가 작으면) 최대치를 75% 선으로 제한하여 몰림 방지
+    // 2. 특정 점수가 압도적이면(편차가 크면) 95% 선까지 확장하여 특징 부각
+    let limit;
+    if (deviation < 5) limit = 70;      // 점수가 다 비슷비슷할 때 (뭉쳐 보임 방지)
+    else if (deviation < 15) limit = 85; // 적당히 차이 날 때
+    else limit = 95;                    // 기질이 뚜렷할 때
+
+    return values.map(v => (v / maxVal) * limit);
+};
+
+    const fullOuter = normalize(outerPcts);
+    const fullInner = normalize(innerPcts);
+
+    // 2. 기존 차트가 있다면 업데이트, 없으면 새로 생성
+    if (window.myRadarChart) {
+        window.myRadarChart.data.datasets[0].data = fullOuter;
+        window.myRadarChart.data.datasets[1].data = fullInner;
+        window.myRadarChart.update();
+        return;
+    }
+
+   window.myRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['乾', '兌', '離', '震', '巽', '坎', '艮', '坤'],
+            datasets: [
+                {
+                    label: 'Persona (상괘)',
+                    data: fullOuter,
+                    borderColor: '#800020',
+                    backgroundColor: 'rgba(128, 0, 32, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 2 
+                                    },
+                {
+                    label: 'Essence (하괘)',
+                    data: fullInner,
+                    borderColor: '#4A90E2',
+                    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { top: 10, bottom: 10 } }, // 캔버스 끝까지 활용
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100, // 환산했으므로 100이 끝입니다.
+                    ticks: { display: false, stepSize: 20 },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                    pointLabels: {
+                        font: { size: 16, weight: 'bold' },
+                        color: '#333',
+                        padding: 10 // 글자와 차트 간격 최적화
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: { font: { size: 12 }, padding: 20 }
+                }
+            }
+        }
+    });
+}
+   function showResult() {
+    // [중요] 기존 화면 전환
+    document.getElementById('quiz-ui').style.display = 'none';
+    const resultArea = document.getElementById('result-area');
+    resultArea.style.display = 'block';
+
+    // 1. 비중 계산 및 정렬 (기존 유지)
+    const calcPct = (sObj) => {
+        const vals = Object.values(sObj);
+        const min = Math.min(...vals);
+        const off = vals.map(v => v - min + 1);
+        const total = off.reduce((a, b) => a + b, 0) || 1;
+        const res = {}; let i = 0;
+        for (let k in sObj) { res[k] = (off[i] / total) * 100; i++; }
+        return res;
+    };
+
+    const outerPcts = calcPct(scores.outer);
+    const innerPcts = calcPct(scores.inner);
+    const sO = Object.entries(outerPcts).sort(([, a], [, b]) => b - a);
+    const sI = Object.entries(innerPcts).sort(([, a], [, b]) => b - a);
+    
+    const fO = sO[0][0], secondO = sO[1][0];
+    const fI = sI[0][0], secondI = sI[1][0];
+
+    // [여기에 추가!] 날짜 및 이름 변수 선언
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}. ${String(today.getMonth() + 1).padStart(2, '0')}. ${String(today.getDate()).padStart(2, '0')}`;
+    // 만약 상단에서 userName을 입력받지 않았다면 "귀하"로 표시
+    const displayName = (typeof userName !== 'undefined' && userName) ? userName : "귀하";
+    
+    const isOComplex = (sO[0][1] - sO[1][1]) < 7.0;
+    const isIComplex = (sI[0][1] - sI[1][1]) < 7.0;
+
+    const code = window.trigramInfo[fO] + window.trigramInfo[fI];
+    const d = window.ichingDB[code];
+
+    const staticChart = document.getElementById('chart-section');
+    if (staticChart) staticChart.style.display = 'none';
+    
+    let reportHTML = "";
+
+ // 1. 스타일 및 유틸리티 유지
+const pStyle = "line-height: 1.8; color: #444; word-break: keep-all; text-align: justify; margin-top: 10px;";
+const findData = (db, a, b) => {
+    if (!db) return null;
+    return db[a + "+" + b] || db[b + "+" + a] || null;
+};
+
+// [1] 로고: 첫 페이지 1/5 지점 배치
+    reportHTML += `
+    <div style="padding: 60px 0 30px 0; text-align: center;">
+        <img src="Omst_Logo_final.svg" alt="OMST Logo" style="width: 85%; max-width: 450px; height: auto; display: block; margin: 0 auto;">
+    </div>
+    `;
+
+    // [차트 섹션] 안정감 있는 래퍼 적용
+    reportHTML += `
+    <div class="chart-outer-wrap">
+        <div style="height: 400px; position: relative;"> 
+            <canvas id="energyChart"></canvas>
+        </div>
+    </div>
+    `;
+
+    // 서문 (고급 폰트 및 여백)
+    reportHTML += `
+    <div style="margin: 50px 0; text-align: center;">
+        <p class="report-preface" style="letter-spacing: -0.02em; color: #555;">
+            본 분석은 동양 철학과 정신분석학을 기반으로,<br>
+            주역 64괘를 통하여 도출된 귀하만의 정밀한 기질 리포트입니다.
+        </p>
+    </div>
+
+    <hr style="border: 0; height: 1px; background: linear-gradient(to right, transparent, #800020, transparent); width: 60%; margin: 40px auto; opacity: 0.3;">
+
+    <div style="text-align: center; margin-bottom: 80px; padding: 0 20px;">
+        <h2 style="font-size: 1.8rem; font-weight: 800; color: #1a1a1a; margin-bottom: 25px; letter-spacing: -1px;">
+            <span style="color: #800020; border-bottom: 3.5px solid #800020; padding-bottom: 4px;">${displayName}</span> 님의 정밀 기질 리포트
+        </h2>
+        
+        <div style="font-family: 'Gowun Batang', serif; font-size: 0.95rem; color: #999; line-height: 2.0;">
+            <span style="letter-spacing: 1px; color: #777; font-weight: 500;">ANALYSIS DATE : ${dateStr}</span><br>
+            <span style="font-size: 0.85rem; opacity: 0.8;">OMST™ Intelligence Engine v2.6.4</span><br>
+            <div style="margin-top: 12px; font-weight: 600; color: #bbb; letter-spacing: 0.5px; font-family: 'Arial', sans-serif; font-size: 0.8rem;">
+                COPYRIGHT 2026. <span style="color: #999;">OMST™</span> ALL RIGHTS RESERVED.
+            </div>
+        </div>
+    </div>
+    `;
+
+        // 핵심 하이라이트 박스 (대표괘) - 디자인 강화
+    reportHTML += `
+    <div class="highlight-box" style="padding: 35px 25px; margin-bottom: 10px; text-align: center; background: #800020; border-radius: 20px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(128,0,32,0.2);">
+        <div style="position: absolute; top: -10px; right: -10px; font-size: 8rem; color: rgba(255,255,255,0.07); pointer-events: none; font-family: serif;">${d.symbol}</div>
+        <div style="color:#ffd700; font-size: 1.2rem; letter-spacing: 5px; margin-bottom: 12px; font-weight: bold;">MAIN CHARACTER</div>
+        <h2 style="margin: 0 0 15px 0; font-size: 1.6rem; color: #fff; position: relative;">${d.name}</h2>
+        
+        <p style="line-height: 1.8; font-size: 1.1rem; margin: 0; word-break: keep-all; font-weight: 300; text-align: center; position: relative;">
+            "${d.summary}"
+        </p>
+    </div>`;    
+    
+    // [최종 출력 및 차트 실행]
+    // ---------------------------------------------------------
+    const reportBody = document.getElementById('report-body');
+    if (reportBody) {
+        // A. 먼저 화면에 HTML을 꽂습니다.
+        reportBody.innerHTML = reportHTML;
+
+        // B. 0.2초 뒤에 차트를 그립니다. (ID 충돌 방지 및 렌더링 시간 확보)
+        setTimeout(() => {
+            if (typeof renderEnergyChart === "function") {
+                renderEnergyChart('energyChart', outerPcts, innerPcts);
+            }
+        }, 200);
+    }
+        
+    // [3] 잠재적 조합 괘들 (경합 시 노출) - 로직 유지 및 이름표 추가
+    let potentialHexes = [];
+    const addHex = (top, bottom, label, fTag, tTag) => { // fTag, tTag 파라미터 추가
+        const c = window.trigramInfo[top] + window.trigramInfo[bottom];
+        if (c !== code && window.ichingDB[c]) {
+            potentialHexes.push({ 
+                ...window.ichingDB[c], 
+                label: label,
+                fromTag: fTag, // db6 매칭용 이름표
+                toTag: tTag    // db6 매칭용 이름표
+            });
+        }
+    };
+
+    // 기존 경합 조건 유지
+    if (isOComplex || isIComplex) {
+        // 상괘/하괘 변수에 따라 이름표(fO, secondO 등)를 정확히 전달
+        if (isIComplex) addHex(fO, secondI, "내면의 변수", fI, secondI);
+        if (isOComplex) addHex(secondO, fI, "외부적 환경", fO, secondO);
+        if (isOComplex && isIComplex) addHex(secondO, secondI, "잠재적 역동", "경합", "발생");
+
+        if (potentialHexes.length > 0) {
+            reportHTML += `
+                <div style="margin-bottom: 40px;">
+                    <p style="text-align:center; font-size:0.8rem; color:#999; margin-bottom:12px; letter-spacing: 1px;">── 상황에 따라 발현되는 잠재적 기질 ──</p>
+                    <div style="display: grid; grid-template-columns: repeat(${potentialHexes.length}, 1fr); gap: 10px;">
+                        ${potentialHexes.map(hex => `
+                            <div style="background: #fff; border: 1px solid #eee; padding: 15px 8px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                <div style="font-size: 1.6rem; color: #800020; margin-bottom: 4px;">${hex.symbol}</div>
+                                <div style="font-size: 0.85rem; font-weight: bold; color: #444;">${hex.name.split('(')[0]}</div>
+                                <div style="font-size: 0.65rem; color: #aaa; margin-top: 3px; white-space: nowrap;">${hex.label}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+        }
+    }    
+
+    // [4] DB9 심층 분석 데이터 가져오기 (db9.js 활용)
+    // 상괘, 하괘, 그리고 경합 괘들을 모아 최적의 심층 분석 데이터를 추출합니다.
+    const top3Trigrams = Array.from(new Set([fO, fI, secondO, secondI])).slice(0, 3);
+    while(top3Trigrams.length < 3) {
+        const backup = ["건", "태", "리", "진", "손", "감", "간", "곤"].find(t => !top3Trigrams.includes(t));
+        top3Trigrams.push(backup);
+    }
+    const d9 = getAtomicData(top3Trigrams, window.ds9_triple); 
+
+    if (d9) {
+        // [5] 핵심 기질 통찰 (버건디 박스) - 기존 reportHTML에 '추가(+=)' 합니다.
+        reportHTML += `
+    <div style="background: rgba(128,0,32,0.04); border-left: 6px solid #800020; padding: 35px 30px; border-radius: 0 20px 20px 0; margin: 60px 0 50px 0; box-shadow: 5px 5px 20px rgba(0,0,0,0.02);">
+        
+        <h4 style="margin-top: 0; margin-bottom: 25px; color: #800020; font-family: 'Gowun Batang', serif; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">
+            [ 본연의 자아와 외연적 투영]
+        </h4>
+
+        <p style="font-family: 'Gowun Batang', serif; font-size: 1.15rem; line-height: 1.8; color: #333; margin: 0; word-break: keep-all; opacity: 0.9;">
+            
+            "현재 도출된 <b style="color: #800020; font-size: 1.20rem;">메인 캐릭터 ${d.name} </b>는 <br> 귀하의 본질적인 중심을 잡고 있는 핵심 에너지입니다. <br>
+
+            하지만 함께 분석된 괘들은 특정한 상황과 환경에서 <br>
+            <b style="background: linear-gradient(to top, rgba(128,0,32,0.1) 40%, transparent 40%);">'또 다른 당신의 모습'</b>으로 발현될 수 있습니다. <br>
+            또다른 당신에 대해 탐구해보세요."
+        </p>
+    </div>
+`;
+
+        // [6] 8단계 심층 프로파일링 (Grid 레이아웃)
+        reportHTML += `
+        <div class="mobile-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 50px;">
+            <div class="compact-card" style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                <h4 style="color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 8px; margin-bottom: 15px; font-size: 0.95rem;">사회적 자아 (Outer)</h4>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 관계의 가면</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p1}</p></div>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 사회적 엔진</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p2}</p></div>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 일상의 결</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p3}</p></div>
+                <div><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 건강 태도</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p4}</p></div>
+            </div>
+
+            <div class="compact-card" style="background: #fcfcfc; padding: 20px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                <h4 style="color: var(--burgundy); border-bottom: 2px solid var(--burgundy); padding-bottom: 8px; margin-bottom: 15px; font-size: 0.95rem;">본질적 자아 (Inner)</h4>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 무의식적 본질</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p5}</p></div>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 심리적 역린</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p6}</p></div>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 회복 기전</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p7}</p></div>
+                <div><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 치유 조건</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p8}</p></div>
+            </div>
+        </div>`;
+    }
+
+    // --- [마무리 로직 이동] ---
+    // 기존의 조기 innerHTML 업데이트를 제거하고 아래에서 한꺼번에 처리합니다.
+
+    // [5] 상세 기질 분석 (상괘/하괘) - 기존의 정밀 로직
+    // 1. 상괘 분석
+    reportHTML += `<div class="report-section"><div class="section-title" style="text-align: center; margin-bottom: 20px;">1. 사회적 페르소나 (상괘 분석)</div>`;
+    if (isOComplex) {
+        const cD3 = findData(window.db3, fO, secondO);
+        reportHTML += `<div style="text-align:center; margin-bottom:15px;"><span style="background:#800020; color:#fff; padding:4px 12px; border-radius:20px; font-size:0.9rem; font-weight:bold;">✨ 상괘 경합 : ${fO} ↔ ${secondO}</span></div>
+                       <div class="desc" style="${pStyle}">${cD3?.upper?.content || window.db2[fO]?.upper?.content || "데이터를 준비 중입니다."}</div>`;
+    } else {
+        reportHTML += `<div class="desc" style="${pStyle}">${window.db2[fO]?.upper?.content || ""}</div>`;
+    }
+    reportHTML += `</div>`;
+
+    // 2. 하괘 분석 (DB4 로직 포함)
+    reportHTML += `<div class="report-section"><div class="section-title" style="text-align: center; margin-bottom: 20px;">2. 내면적 자아 (하괘 분석)</div>`;
+    if (isIComplex) {
+        reportHTML += `<div style="text-align:center; margin-bottom:15px;"><span style="background:#6a5acd; color:#fff; padding:4px 12px; border-radius:20px; font-size:0.9rem; font-weight:bold;">🌙 하괘 역동 : ${fI} ↔ ${secondI}</span></div>`;
+        const key4 = [fO, fI, secondI].sort().join("+");
+        const cD4 = window.db4 ? window.db4[key4] : null;
+        if (cD4?.lower?.content) {
+            reportHTML += `<div class="desc" style="${pStyle}">${cD4.lower.content}</div>`;
+        } else {
+            const cD3 = findData(window.db3, fI, secondI);
+            const combined = (window.db2[fI]?.lower?.content || "") + "<br><br>" + (cD3?.lower?.content || "");
+            reportHTML += `<div class="desc" style="${pStyle}">${combined}</div>`;
+        }
+    } else {
+        reportHTML += `<div class="desc" style="${pStyle}">${window.db2[fI]?.lower?.content || ""}</div>`;
+    }
+    reportHTML += `</div>`;
+
+    const allRelevantHexes = [
+        { ...d, label: "기본 관계 스타일", isMain: true, binary: code },
+        ...potentialHexes.map(ph => {
+            const bCode = window.trigramInfo[ph.top] + window.trigramInfo[ph.bottom];
+            return { 
+                ...ph, 
+                isMain: false, 
+                binary: bCode,
+                fromTag: ph.fromTag || "", 
+                toTag: ph.toTag || ""
+            };
+        })
+    ];
+
+// [6] 인간관계 역동 상세 분석 섹션 시작
+// 모바일 대응을 위한 공통 스타일 정의 (상단에 한 번만 추가)
+reportHTML += `
+    <style>
+        .dynamic-container { display: flex; gap: 20px; flex-wrap: wrap; }
+        .dynamic-item { flex: 1; min-width: 280px; }
+        @media (max-width: 600px) {
+            .hex-detail-card, .variation-card, .potential-synergy-card { padding: 20px !important; }
+            .dynamic-item { min-width: 100%; }
+            .mobile-flex-col { flex-direction: column !important; }
+        }
+    </style>
+    <div class="report-section" style="margin-top: 40px; border-top: 2px solid #2c3e50; padding-top: 30px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <div style="font-size: 0.85rem; color: #5dade2; letter-spacing: 4px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase;">INTERPERSONAL DYNAMICS</div>
+            <h3 style="font-size: 1.8rem; color: #1a1a1a; margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 700;">내 마음의 입체적 지도</h3>
+            <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">"상황에 따라 변화하는 나의 숨겨진 모습들"</p>
+        </div>
+`;
+
+const trigramList = ["건", "태", "이", "진", "손", "감", "간", "곤"];
+
+allRelevantHexes.forEach((hex, idx) => {
+    const isMain = hex.isMain;
+    const pureName = hex.name.split('(')[0];
+
+   // --- CASE A: 본괘 (Main Hexagram) 가로 정렬 최적화 ---
+if (isMain) {
+    const db5Data = window.db5_expanded[hex.binary] || {};
+
+    reportHTML += `
+        <div class="hex-detail-card" style="background: #fff; border: 1px solid #eee; border-top: 4px solid #800020; padding: 30px 25px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.04); color: #333; text-align: center;">
+            
+            <div style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #f5f5f5;">
+                <div style="font-size: 0.8rem; color: #800020; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 15px; text-transform: uppercase;">
+                    나의 타고난 성격의 핵심
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                    <span style="font-size: 2.8rem; color: #800020; line-height: 1;">${hex.symbol}</span>
+                    
+                    <div style="font-size: 1.6rem; font-weight: 800; color: #1a1a1a; display: flex; align-items: baseline;">
+                        ${pureName} 
+                        <span style="font-size: 1rem; color: #888; font-weight: 400; margin-left: 6px;">
+                            ${hex.name.includes('(') ? '(' + hex.name.split('(')[1] : ''}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: rgba(128,0,32,0.02); padding: 22px; border-radius: 12px; margin-bottom: 25px; border-top: 2px solid #800020;">
+                <div style="font-size: 0.75rem; color: #800020; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">[ 성격 요약 ]</div>
+                <div style="font-size: 1.1rem; color: #222; font-weight: 700; line-height: 1.7; word-break: keep-all;">
+                    "${db5Data.persona || '데이터 준비 중'}"
+                </div>
+            </div>
+
+            <div class="mobile-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px;">
+                <div class="compact-card" style="padding: 15px; background: #fafafa; border-radius: 12px; border: 1px solid #f0f0f0; text-align: left;">
+                    <strong style="color: #444; display: block; margin-bottom: 6px; font-size: 0.85rem;">• 내면적 동기</strong> 
+                    <span class="compact-font" style="color: #666; line-height: 1.5; font-size: 0.9rem; word-break: keep-all;">${db5Data.innerSelf || '-'}</span>
+                </div>
+                <div class="compact-card" style="padding: 15px; background: #fffcfc; border-radius: 12px; border: 1px solid #ffeded; text-align: left;">
+                    <strong style="color: #e74c3c; display: block; margin-bottom: 6px; font-size: 0.85rem;">• 잠재적 취약성</strong> 
+                    <span class="compact-font" style="color: #666; line-height: 1.5; font-size: 0.9rem; word-break: keep-all;">${db5Data.weakness || '-'}</span>
+                </div>
+            </div>
+
+            <div style="background: #fff; border: 1px solid #eee; padding: 18px; border-radius: 18px;">
+                <div style="padding: 12px; background: #fdfdfd; border-radius: 10px; border: 1px solid #e0e5ec; margin-bottom: 12px; text-align: center;">
+                    <strong style="color: #27ae60; display: block; margin-bottom: 6px; font-size: 0.9rem;">🎯 솔루션 지침</strong> 
+                    <span style="font-weight: 700; font-size: 0.95rem; line-height: 1.6; color: #333; word-break: keep-all;">${db5Data.resolution || '-'}</span>
+                </div>
+                            </div>
+        </div>
+    `;
+}
+   // --- CASE B: 역동괘 (상황별 변화 분석) ---
+else {
+    let f = trigramList.find(tri => (hex.fromTag || "").includes(tri));
+    let t = trigramList.find(tri => (hex.toTag || "").includes(tri));
+    if (!f) f = (hex.fromTag || "").replace(/[^가-힣]/g, '').charAt(0);
+    if (!t) t = (hex.toTag || "").replace(/[^가-힣]/g, '').charAt(0);
+    if (f === "이") f = "리"; if (t === "이") t = "리";
+
+    const dKey = `${f}to${t}`; 
+    const isInner = hex.label && hex.label.includes("내면");
+    const d6Entry = window.db6[dKey];
+    const changeData = d6Entry ? (isInner ? d6Entry.lower : d6Entry.upper) : null;
+
+    const hexTerms = {
+        "건": { inner: "확고한 주도권", social: "당당한 리더십" },
+        "태": { inner: "즐거운 기쁨", social: "다정한 소통" },
+        "리": { inner: "선명한 확신", social: "예리한 통찰" },
+        "진": { inner: "새로운 에너지", social: "거침없는 돌파" },
+        "손": { inner: "섬세한 수용", social: "유연한 적응" },
+        "감": { inner: "깊은 성찰", social: "신중한 지혜" },
+        "간": { inner: "고요한 멈춤", social: "한결같은 중심" },
+        "곤": { inner: "따뜻한 포용", social: "헌신적인 지원" }
+    };
+
+    if (changeData) {
+        const themeColor = isInner ? "#9b59b6" : "#3498db";
+        const categoryLabel = isInner ? "내면의 변화로 영향받을 때" : "세상을 대하는 방식이 영향받을 때";
+        
+        const typeKey = isInner ? 'inner' : 'social';
+        const fromText = hexTerms[f] ? hexTerms[f][typeKey] : f;
+        const toText = hexTerms[t] ? hexTerms[t][typeKey] : t;
+
+        reportHTML += `
+            <div class="variation-card" style="background: #fff; border: 1px solid #eee; border-top: 4px solid ${themeColor}; padding: 35px 25px; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.04); color: #333; text-align: center;">
+                
+                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #f8f9fa;">
+                    
+                    <div style="font-size: 0.85rem; color: ${themeColor}; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 15px; text-transform: uppercase;">
+                        ${categoryLabel}
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                        <div style="font-size: 2.8rem; color: ${themeColor}; line-height: 1;">
+                            ${hex.symbol || ''}
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.05rem; color: #888; font-weight: 500;">${fromText}</span>
+                            <span style="color: ${themeColor}; font-size: 1.4rem; font-weight: bold;">→</span>
+                            <span style="font-size: 1.4rem; color: #1a1a1a; font-weight: 800;">${toText}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(0,0,0,0.01); padding: 22px; border-radius: 15px; text-align: center; margin-bottom: 25px; border: 1px dashed #e0e0e0;">
+                    <div style="font-size: 0.75rem; color: #888; font-weight: bold; margin-bottom: 8px; text-transform: uppercase;">[ 변화가 일어나는 이유 ]</div>
+                    <span style="font-size: 1.15rem; font-weight: 800; color: #333; word-break: keep-all; line-height: 1.6;">
+                        " ${changeData.이유} "
+                    </span>
+                </div>
+
+                <div style="text-align: left; margin-bottom: 25px;">
+                    <p style="margin-bottom: 20px; word-break: keep-all; font-size: 1rem; line-height: 1.8;">
+                        <strong style="color: ${themeColor}; border-bottom: 2px solid ${themeColor}33;">• 나타나는 상황:</strong> 
+                        <span style="color: #444; margin-left: 5px;">${changeData.상황}</span>
+                    </p>
+                    
+                    <div class="mobile-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="compact-card" style="padding: 18px; background: #fdfcfc; border-radius: 12px; border: 1px solid #f0f0f0;">
+                            <strong style="color: #2980b9; font-size:0.85rem;">+ 긍정적 변화</strong>
+                            <div class="compact-font" style="margin-top: 8px; line-height: 1.6; color: #666; font-size: 0.9rem; word-break: keep-all;">
+                                ${changeData.장점}
+                            </div>
+                        </div>
+                        <div class="compact-card" style="padding: 18px; background: #fffcfc; border-radius: 12px; border: 1px solid #ffeded;">
+                            <strong style="color: #c0392b; font-size:0.85rem;">- 주의할 점</strong>
+                            <div class="compact-font" style="margin-top: 8px; line-height: 1.6; color: #666; font-size: 0.9rem; word-break: keep-all;">
+                                ${changeData.단점}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #fff; color: #222; padding: 22px; border-radius: 18px; border: 1.5px solid #e0e5ec; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                    <strong style="color: #27ae60; display: block; margin-bottom: 10px; font-size: 0.95rem;">🎯 전략적 지침</strong>
+                    <span style="font-weight: 700; color: #333; line-height: 1.7; word-break: keep-all; font-size: 1.05rem;">
+                        ${changeData.솔루션}
+                    </span>
+                </div>
+            </div>
+        `;
+    }
+}
+});
+
+reportHTML += `</div>`;
+
+// --- 통합 분석 섹션 ---
+if (allRelevantHexes.filter(h => !h.isMain).length >= 2) {
+    const dynamicHexes = allRelevantHexes.filter(h => !h.isMain);
+    const outerHex = dynamicHexes.find(h => !h.label.includes("내면"));
+    const innerHex = dynamicHexes.find(h => h.label.includes("내면"));
+    
+    const trigramList = ["건", "태", "이", "진", "손", "감", "간", "곤", "리"];
+    let oTri = trigramList.find(tri => (outerHex?.toTag || "").includes(tri)) || "건";
+    let iTri = trigramList.find(tri => (innerHex?.toTag || "").includes(tri)) || "곤";
+    
+    if (oTri === "이") oTri = "리";
+    if (iTri === "이") iTri = "리";
+    
+    const hexTerms = {
+        "건": { inner: "강인한 정신력", social: "압도적인 존재감" },
+        "태": { inner: "밝게 빛나는 마음", social: "매력적인 이끌림" },
+        "리": { inner: "뜨거운 직관", social: "명쾌한 판단력" },
+        "진": { inner: "멈추지 않는 열망", social: "강력한 파급력" },
+        "손": { inner: "유연한 사고방식", social: "세련된 처세술" },
+        "감": { inner: "흔들리지 않는 심지", social: "철저한 위기관리" },
+        "간": { inner: "평온한 내적 질서", social: "독보적인 신뢰감" },
+        "곤": { inner: "한계 없는 지지", social: "모든 것을 품는 포용" }
+    };
+
+    const newBinary = window.trigramInfo[oTri] + window.trigramInfo[iTri];
+    const finalData = window.db5_expanded[newBinary] || {};
+
+    const oFrom = trigramList.find(tri => (outerHex?.fromTag || "").includes(tri)) || "건";
+    const iFrom = trigramList.find(tri => (innerHex?.fromTag || "").includes(tri)) || "곤";
+    
+    // 두 줄 문구 생성 (조사 포함 공감형)
+    const socialPath = `${hexTerms[oFrom]?.social || oFrom} → ${hexTerms[oTri]?.social || oTri}`;
+    const innerPath = `${hexTerms[iFrom]?.inner || iFrom} → ${hexTerms[iTri]?.inner || iTri}`;
+
+    reportHTML += `
+    <div class="variation-card" style="background: #fff; border: 1px solid #eee; border-top: 4px solid #1abc9c; padding: 35px 25px; border-radius: 20px; margin-top: 40px; margin-bottom: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.04); color: #333; text-align: center;">
+        
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #f8f9fa;">
+            
+            <div style="font-size: 0.85rem; color: #1abc9c; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 15px; text-transform: uppercase;">
+                상황에 따라 깨어나는 또다른 나
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <div style="font-size: 2.8rem; color: #1abc9c; line-height: 1;">
+                    ${finalData.symbol || 'Ω'}
+                </div>
+                
+                <div style="text-align: left; padding-left: 12px; border-left: 1.5px solid #eee;">
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1rem; color: #aaa; font-weight: 500; opacity: 0.9;">${hexTerms[oFrom]?.social || oFrom}</span>
+                        <span style="color: #ccc; font-size: 1.1rem; font-weight: bold;">→</span>
+                        <span style="font-size: 1.2rem; font-weight: 800; color: #1a1a1a;">${hexTerms[oTri]?.social || oTri}</span>
+                    </div>
+
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #1a1a1a; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1rem; color: #aaa; font-weight: 500; opacity: 0.9;">${hexTerms[iFrom]?.inner || iFrom}</span>
+                        <span style="color: #ccc; font-size: 1.1rem; font-weight: bold;">→</span>
+                        <span style="font-size: 1.2rem; font-weight: 800; color: #1a1a1a;">${hexTerms[iTri]?.inner || iTri}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+            <div style="background: rgba(0,0,0,0.01); padding: 30px 22px; border-radius: 20px; text-align: center; margin-bottom: 25px; border: 1px dashed #e0e0e0;">
+        <span style="font-size: 1.25rem; font-weight: 800; color: #1a1a1a; word-break: keep-all; line-height: 1.7; display: block; letter-spacing: -0.5px;">
+            " ${finalData.persona || '분석 중...' } "
+        </span>
+    </div>
+
+            <div style="text-align: left; margin-bottom: 25px;">
+                <div class="mobile-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="compact-card" style="padding: 18px; background: #fafafa; border-radius: 12px; border: 1px solid #f0f0f0;">
+                        <strong style="color: #1abc9c; font-size:0.85rem;">• 발현 기제</strong>
+                        <div class="compact-font" style="margin-top: 8px; line-height: 1.6; color: #666; font-size: 0.9rem; word-break: keep-all;">
+                            ${finalData.innerSelf || '-'}
+                        </div>
+                    </div>
+                    <div class="compact-card" style="padding: 18px; background: #fffcfc; border-radius: 12px; border: 1px solid #ffeded;">
+                        <strong style="color: #c0392b; font-size:0.85rem;">• 주의점</strong>
+                        <div class="compact-font" style="margin-top: 8px; line-height: 1.6; color: #666; font-size: 0.9rem; word-break: keep-all;">
+                            ${finalData.weakness || '-'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: #fff; color: #222; padding: 22px; border-radius: 18px; border: 1.5px solid #e0e5ec; text-align: center;">
+                <strong style="color: #27ae60; display: block; margin-bottom: 10px; font-size: 0.95rem;">🎯 통합적 성장 가이드</strong>
+                <span style="font-weight: 700; color: #333; line-height: 1.7; word-break: keep-all; font-size: 1.05rem;">
+                    ${finalData.resolution || '-'}
+                </span>
+            </div>
+        </div>
+    `;
+}
+
+// 1. 8괘별 관계 키워드 데이터 정의
+const relationKeywords = {
+    "건": { 
+        helper_out: "실질적인 성과와 풍요를 가져다주는 실행력", 
+        helper_in: "흐트러진 상황의 질서를 바로잡는 강단",
+        avoider_out: "독단적이고 권위적인 소통 방식",
+        avoider_in: "타인의 의견을 무시하고 몰아붙이는 압박"
+    },
+    "태": { 
+        helper_out: "정서적 공감과 유쾌한 에너지를 나누는 소통력", 
+        helper_in: "경직된 분위기를 녹여주는 유연한 유머감각",
+        avoider_out: "가볍고 진실성 없이 말만 앞세우는 태도",
+        avoider_in: "책임감 없이 즐거움만 쫓으며 상황을 회피하는 성향"
+    },
+    "감": { 
+        helper_out: "깊은 통찰을 현실의 지혜로 바꾸는 명철함", 
+        helper_in: "보이지 않는 리스크를 미리 감지하는 신중함",
+        avoider_out: "사사건건 의심하며 열정에 찬물을 끼얹는 태도",
+        avoider_in: "소통을 거부하고 폐쇄적으로 일관하는 음울함"
+    },
+    "리": { 
+        helper_out: "혼란 속에서 핵심을 꿰뚫어 보는 명확한 판단력",
+        helper_in: "꺼진 열정을 다시 지펴주는 따뜻한 격려와 응원",
+        avoider_out: "감정적으로 폭발하거나 논리 없이 비난하는 다혈질",
+        avoider_in: "앞뒤가 다른 가식적인 태도로 신뢰를 무너뜨리는 행동"
+    },
+    "진": { 
+        helper_out: "정체된 상황을 깨뜨리고 함께 나아가는 폭발적인 추진력",
+        helper_in: "새로운 도전을 두려워하지 않게 만드는 든든한 용기",
+        avoider_out: "변화를 사사건건 방해하며 주저앉히는 보수적인 태도",
+        avoider_in: "작은 일에도 예민하게 반응하며 불안감을 조성하는 성향"
+    },
+    "손": { 
+        helper_out: "부드럽게 스며들어 관계를 조율하는 유연한 중재력",
+        helper_in: "세밀한 부분까지 챙겨주는 섬세하고 사려 깊은 배려",
+        avoider_out: "주관 없이 상황에 따라 말을 바꾸는 기회주의적 태도",
+        avoider_in: "결정적인 순간에 회피하며 책임을 전가하는 무책임함"
+    },
+    "간": { 
+        helper_out: "어떤 풍파에도 흔들리지 않고 중심을 잡아주는 묵직함",
+        helper_in: "복잡한 생각을 멈추고 현재에 집중하게 돕는 안정감",
+        avoider_out: "자기 생각만 고집하며 변화를 거부하는 답답한 완고함",
+        avoider_in: "공감 능력 없이 차갑게 벽을 치는 냉소적인 의사소통"
+    },
+    "곤": { 
+        helper_out: "모든 것을 품어주고 성장을 돕는 따뜻한 포용력",
+        helper_in: "귀하의 헌신을 가치 있게 여기고 보듬어주는 깊은 이해심",
+        avoider_out: "호의를 권리로 착각하며 무례하게 선을 넘는 태도",
+        avoider_in: "에너지를 주기만 하고 착취하려는 이기적인 인간관계"
+    }
+};
+
+// 2. 수검자의 상괘(fO)와 하괘(fI)를 기반으로 데이터 추출
+// fO: Persona(대외적 기질), fI: Essence(내면적 기질)
+const outData = relationKeywords[fO] || relationKeywords["곤"]; 
+const inData = relationKeywords[fI] || relationKeywords["곤"];
+
+// 3. HTML 섹션 생성 및 조합
+reportHTML += `
+<div class="report-section" style="margin-top: 40px; padding: 30px; background: #fff; border: 1px solid #eee; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+    <div class="section-title" style="margin-bottom: 25px; display: flex; align-items: center; gap: 10px; font-weight: 800; color: #333;">
+        <span style="font-size: 1.5rem;">🤝</span> 관계의 솔루션: 귀하를 위한 파트너십
+    </div>
+
+    <div style="background: #fdfaf3; padding: 25px; border-radius: 15px; margin-bottom: 20px; border-left: 5px solid #d4af37;">
+        <div style="font-weight: 900; color: #b8860b; margin-bottom: 12px; font-size: 1.15rem;">
+            ✨ 비전을 현실로 만드는 [실질적 조력자]
+        </div>
+        <p style="font-size: 1rem; color: #444; line-height: 1.8; margin: 0; word-break: keep-all;">
+            사회적으로는 <b>${outData.helper_out}</b>을 가진 인물이 귀하의 결과물을 빛내줄 것이며, 
+            내면적으로는 <b>${inData.helper_in}</b>을 지닌 파트너와 함께할 때 가장 평온하고 강력한 시너지를 낼 수 있습니다.
+        </p>
+    </div>
+
+    <div style="background: #f9f9f9; padding: 25px; border-radius: 15px; border-left: 5px solid #bbb;">
+        <div style="font-weight: 900; color: #666; margin-bottom: 12px; font-size: 1.15rem;">
+            ⚠️ 에너지 소모를 주의할 [경계 대상]
+        </div>
+        <p style="font-size: 1rem; color: #666; line-height: 1.8; margin: 0; word-break: keep-all;">
+            대외적인 관계에서 <b>${outData.avoider_out}</b>를 보이는 사람은 귀하의 평판을 저해할 수 있으며, 
+            특히 <b>${inData.avoider_in}</b>을 가진 인물은 귀하의 정신적 에너지를 빠르게 고갈시키므로 적절한 거리두기가 필요합니다.
+        </p>
+    </div>
+</div>
+`;
+
+reportHTML += renderRomanticSection(top3Trigrams);
+
+// [6] 연인 관계 및 애정 역동 분석 (Atomic 통합 Ver.)
+// 호출 예시: reportHTML += renderRomanticSection(['건', '곤', '감']);
+
+/**
+ * [내부 엔진] 괘의 순서에 상관없이 DB에서 데이터를 집요하게 찾아냅니다.
+ * 원장님 DB가 '곤+감+리'여도 ['리', '감', '곤'] 배열을 넣으면 찾아냄.
+ */
+function getAtomicData(keys, dbSource) {
+    if (!keys || keys.length === 0 || !dbSource) return null;
+    
+    // 1. 현재 입력된 괘를 집합(Set)으로 변환 (순서 무시)
+    const targetSet = new Set(keys.map(k => k.trim()));
+    
+    // 2. 전달된 dbSource의 모든 키를 전수조사
+    const allKeys = Object.keys(dbSource || {});
+    
+    // 3. 조건에 맞는 후보군 찾기 (3개 매칭, 2개 매칭, 1개 매칭)
+    const candidates = [];
+    for (const key of allKeys) {
+        let dbKeys = key.split('+').map(k => k.trim());
+        
+        // [추가] db9.js처럼 '+'가 없는 3글자 키(예: "건리손") 대응
+        if (dbKeys.length === 1 && key.length === 3) {
+            dbKeys = key.split(''); 
+        }
+        
+        // DB의 키가 구성한 모든 괘가 타겟 배열(targetSet) 안에 포함되어야 함
+        if (dbKeys.every(k => targetSet.has(k))) {
+            candidates.push({
+                key: key,
+                matchCount: dbKeys.length // 몇 개가 일치했는지 점수 부여
+            });
+        }
+    }
+    
+    if (candidates.length === 0) return null; // 1개조차도 포함된 게 없으면 실패
+    
+    // 4. 가장 매칭 수가 많은(길이가 긴) 데이터부터 우선순위 부여 (내림차순 정렬)
+    candidates.sort((a, b) => b.matchCount - a.matchCount);
+    
+    // 최고 점수(Best Match)의 데이터 키를 선택
+    const bestMatchKey = candidates[0].key;
+    console.log(`[Smart Fallback Match] 대상 조합(${keys.join('+')}) -> 매칭 성공: [${bestMatchKey}] (일치수: ${candidates[0].matchCount})`);
+    
+    return dbSource[bestMatchKey];
+}
+
+/**
+ * [메인 UI 함수] 리포트 섹션 생성
+ */
+function renderRomanticSection(selectedQue) {
+    // 엔진 가동
+    const atomic = getAtomicData(selectedQue, window.DB7_Atomic);
+    
+    // 데이터 매칭 실패 시 출력 (디버깅용)
+    if (!atomic) {
+        console.warn(`[Atomic Lookup Failed] 매칭 실패: ${selectedQue}`);
+        return `<div style="padding: 40px; text-align: center; color: #d63384; background: #fffcfc; border: 1px dashed #fce4ec; border-radius: 20px;">
+                    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">🧬 정밀 관계 분석 중...</div>
+                    <div style="font-size: 0.9rem; color: #999;">현재 조합(${selectedQue.join('+')})에 대한 심층 데이터를 구성하고 있습니다.</div>
+                </div>`;
+    }
+
+    // 데이터가 있을 때 생성되는 핑크&자주톤 리포트
+    return `
+        <div class="report-section" style="margin-top: 60px; border-top: 2px solid #fce4ec; padding-top: 40px;">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <div style="font-size: 0.8rem; color: #d63384; letter-spacing: 4px; font-weight: 800; margin-bottom: 10px; opacity: 0.8;">ROMANTIC ATOMIC RESONANCE</div>
+                <h3 style="font-size: 1.8rem; color: #1a1a1a; margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 800;">마음의 거리와 관계의 온도</h3>
+                <p style="font-size: 0.95rem; color: #666; margin-top: 10px; line-height: 1.7;">
+                    가장 친밀한 거리에서 드러나는 당신의 숨겨진 사랑의 언어와<br>
+                    상대방과의 정서적 공명 방식을 분석합니다.
+                </p>
+            </div>
+
+            <div style="background: #fff; border: 1px solid #eee; border-left: 6px solid #d63384; padding: 30px; border-radius: 0 20px 20px 0; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; border-bottom: 1px solid #fff0f5; padding-bottom: 12px;">
+                    <span style="color: #d63384; font-weight: bold; font-size: 0.9rem; letter-spacing: 1px;">• 사회적 관계의 모습 (The Mask)</span>
+                </div>
+                <h4 style="font-size: 1.4rem; color: #1a1a1a; margin-bottom: 15px; font-family: 'Noto Serif KR', serif; font-weight: 800;">"${atomic.outer.mask}"</h4>
+                <p style="font-size: 1.05rem; line-height: 1.85; color: #444; margin-bottom: 20px; word-break: keep-all;">
+                    ${atomic.outer.description}
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <div style="font-size: 0.85rem; background: #fff0f5; color: #d63384; padding: 6px 14px; border-radius: 8px; border: 1px solid #fce4ec; font-weight: 600;">
+                        # ${atomic.outer.attitude}
+                    </div>
+                    <div style="font-size: 0.85rem; background: #f9f9f9; color: #666; padding: 6px 14px; border-radius: 8px; border: 1px solid #eee; font-weight: 600;">
+                        ⚡ 기질: ${atomic.outer.mbti}
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #fff; border: 1px solid #eee; border-left: 6px solid #4a0e1c; padding: 30px; border-radius: 0 20px 20px 0; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; border-bottom: 1px solid #f5f5f5; padding-bottom: 12px;">
+                    <span style="color: #4a0e1c; font-weight: bold; font-size: 0.9rem; letter-spacing: 1px;">• 친밀한 관계의 본질 (The Core)</span>
+                </div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: #4a0e1c; margin-bottom: 15px;">"${atomic.inner.temperature}"</div>
+                <p style="font-size: 1.05rem; line-height: 1.85; color: #444; word-break: keep-all; margin-bottom: 25px;">
+                    ${atomic.inner.description}
+                </p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="padding: 18px; background: #fffafb; border-radius: 12px; border: 1px solid #fce4ec;">
+                        <strong style="color: #d63384; font-size: 0.9rem; display: block; margin-bottom: 6px;">• 핵심 욕망</strong> 
+                        <span style="color: #4a0e1c; font-weight: 600;">${atomic.inner.desire}</span>
+                    </div>
+                    <div style="padding: 18px; background: #fffcfc; border-radius: 12px; border: 1px solid #ffeded;">
+                        <strong style="color: #e74c3c; font-size: 0.9rem; display: block; margin-bottom: 6px;">• 리스크 팩터</strong> 
+                        <span style="color: #c0392b; font-weight: 600;">${atomic.inner.risk}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin: 40px 0; padding: 30px; border: 1px solid #eee; border-radius: 20px; text-align: center; background: #fdfdfd;">
+                <p style="font-size: 1.1rem; color: #333; line-height: 1.9; margin: 0; word-break: keep-all;">
+                    <span style="display: block; color: #d63384; font-weight: 800; margin-bottom: 10px; font-size: 0.95rem;">🎯 통합 가이드</span>
+                    "당신의 사랑은 <span style="color:#d63384; font-weight: 800; border-bottom: 2px solid #fce4ec;">${atomic.inner.desire}</span>이(가) 충족될 때 비로소 완성됩니다. <br>
+                    상대에게 이 이면의 기질을 정직하게 공유할 때, 진정한 기쁨과 안정감을 누릴 수 있습니다."
+                </p>
+            </div>
+        </div>
+    `;
+}
+   /**
+ * [8] 커리어 및 재물 운용 전략 섹션 렌더링 (DB8_Atomic 연동형)
+ */
+function renderCareerSection(top3Trigrams) {
+    const atomic = getAtomicData(top3Trigrams, window.DB8_Atomic);
+    
+    if (!atomic) {
+        console.warn(`[Career Lookup Failed] 커리어 데이터 매칭 실패: ${top3Trigrams}`);
+        return `<div style="padding: 40px; margin-top: 60px; text-align: center; color: #1a2a6c; background: #f8faff; border: 2px dashed #d1dcf5; border-radius: 20px;">
+                    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">💼 커리어 전략 분석 중...</div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        현재 귀하의 고유 진동수 조합(<strong>${top3Trigrams.join(' + ')}</strong>)에 최적화된<br>커리어 및 재물 운용 데이터를 원장님께서 정밀하게 구성하고 계십니다!
+                    </div>
+                </div>`;
+    }
+
+    return `
+        <div class="report-section" style="margin-top: 60px; border-top: 2px solid #d1dcf5; padding-top: 40px;">
+            
+            <div style="text-align: center; margin-bottom: 45px;">
+                <div style="font-size: 0.8rem; color: #1a2a6c; letter-spacing: 5px; font-weight: 800; margin-bottom: 12px; opacity: 0.9;">STRATEGIC WEALTH</div>
+                <h3 style="font-size: 1.8rem; color: #1a1a1a; margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 800;">사회적 성취와 자산의 형상</h3>
+                <p style="font-size: 0.95rem; color: #666; margin-top: 10px; line-height: 1.7;">
+                    당신의 직업적 성향과 자산 관리 스타일을 분석하여<br>
+                    최적의 균형을 찾기 위한 전략을 제안합니다.
+                </p>
+            </div>
+
+            <div style="background: #fff; border: 1px solid #eee; border-left: 6px solid #1a2a6c; padding: 30px; border-radius: 0 20px 20px 0; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <div style="color: #1a2a6c; font-weight: bold; font-size: 0.9rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f0f4f8; padding-bottom: 12px;">
+                    <span style="font-size: 1.2rem;">💼</span> 직업적 페르소나와 사회적 역할
+                </div>
+                <h4 style="font-size: 1.4rem; color: #1a1a1a; margin-bottom: 15px; font-family: 'Noto Serif KR', serif; font-weight: 800;">
+                    "${atomic.outer.mask}"
+                </h4>
+                <p style="font-size: 1.05rem; line-height: 1.85; color: #444; margin-bottom: 20px; word-break: keep-all;">
+                    ${atomic.outer.description}
+                </p>
+                
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div style="background: #f4f6f9; padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; color: #1a2a6c; font-weight: 600; border: 1px solid #e0e6ed;">
+                        # 태도: ${atomic.outer.attitude}
+                    </div>
+                    <div style="background: #fdfdfd; padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; color: #1a2a6c; font-weight: 600; border: 1px solid #eee;">
+                        ⚡ 기질: ${atomic.outer.mbti}
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #fff; border: 1px solid #eee; border-left: 6px solid #b8860b; padding: 30px; border-radius: 0 20px 20px 0; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <div style="color: #b8860b; font-weight: bold; font-size: 0.9rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #fffcf0; padding-bottom: 12px;">
+                    <span style="font-size: 1.3rem;">💰</span> 심층적 동기와 자산 관리
+                </div>
+                <p style="font-size: 1.05rem; line-height: 1.85; color: #444; margin-bottom: 25px; word-break: keep-all;">
+                    당신의 내면에는 <strong>${atomic.inner.drive}</strong>(이)라는 동력이 자리 잡고 있습니다. 
+                </p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="padding: 18px; background: #fffdf5; border: 1px solid #f0e1b9; border-radius: 12px;">
+                        <span style="font-size: 0.85rem; color: #856404; font-weight: bold; display: block; margin-bottom: 8px;">• 최적 자산</span>
+                        <div style="font-size: 1rem; color: #1a1a1a; font-weight: 800; line-height: 1.4;">
+                            ${atomic.inner.asset}
+                        </div>
+                    </div>
+                    <div style="padding: 18px; background: #f8faff; border: 1px solid #d1dcf5; border-radius: 12px;">
+                        <span style="font-size: 0.85rem; color: #1a2a6c; font-weight: bold; display: block; margin-bottom: 8px;">• 재물 가치</span>
+                        <div style="font-size: 1rem; color: #1a1a1a; font-weight: 800; line-height: 1.4;">
+                            ${atomic.inner.desire}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin: 40px 0; padding: 30px; border: 1px solid #eee; border-radius: 20px; text-align: center; background: #fdfdfd;">
+                <p style="font-size: 1.15rem; color: #1a2a6c; line-height: 1.9; margin: 0; word-break: keep-all;">
+                    <span style="display: block; color: #b8860b; font-weight: 800; margin-bottom: 10px; font-size: 0.95rem;">🎯 핵심 재물 조언</span>
+                    ${atomic.inner.description}<br>
+                    <span style="display: block; margin-top: 15px; font-size: 1.15rem; font-weight: 800; color: #0d1b3e;">
+                        "당신은 <span style="color:#b8860b; border-bottom: 2px solid #f0e1b9;">${atomic.inner.risk}</span>(이)라는<br>심리적 변수만 통제한다면 부의 자유를 누릴 상입니다."
+                    </span>
+                </p>
+            </div>
+        </div>
+    `;
+}
+    // [9] 커리어 및 재물 운용 전략 호출
+    reportHTML += renderCareerSection(top3Trigrams);
+
+    const mindHealthKeywords = {
+    "건": {
+        physio: "과도한 긴장으로 인한 교감신경 우위 및 강박적 사고",
+        biochem: "코르티솔(스트레스 호르몬) 수치 과다 및 근육 긴장",
+        philosophy: "무소유(無所有): '가득 채우려 하면 엎질러지기 마련이다.' - 노자",
+        advice: "모든 것을 통제하려는 의지를 내려놓고, '비어 있음'의 여유를 가져보세요."
+    },
+    "태": {
+        physio: "말초적 자극에 민감한 자극추구형 및 도파민 과부하",
+        biochem: "도파민 수용체 과자극으로 인한 세로토닌 합성 저하",
+        philosophy: "지족(知足): '현재에 만족할 줄 아는 자가 진정한 부자다.' - 불교",
+        advice: "자극적인 외부 활동보다는 정적인 명상을 통해 내면의 세로토닌을 채워야 합니다."
+    },
+    "감": {
+        physio: "심부 기력 저하로 인한 신경계 침체 및 우울 경향",
+        biochem: "멜라토닌 불균형 및 의욕을 관장하는 노르에피네프린 부족",
+        philosophy: "조고각하(照顧脚下): '지금 이 순간, 당신의 발밑을 먼저 살피라.'",
+        advice: "깊은 수렁에 빠진 듯할 때는 멀리 보지 말고, 당장 눈앞의 작은 일부터 시작해 보세요."
+    },
+    "리": {
+        physio: "심화(心火) 상충으로 인한 감정 조절 장애 및 번아웃",
+        biochem: "아드레날린 과다 분비로 인한 심박수 증가 및 불면",
+        philosophy: "수승화강(水昇火降): '차가운 기운은 올리고, 뜨거운 기운은 내려라.'",
+        advice: "머리로 쏠린 열기를 식히기 위해 발을 따뜻하게 하고 침묵의 시간을 가져보세요."
+    },
+    "진": {
+        physio: "충동 제어의 어려움 및 주의산만한 ADHD적 경향",
+        biochem: "전두엽의 억제 기능 약화 및 급격한 감정 기복",
+        philosophy: "정중동(靜中動): '움직임 속에 고요함이 있어야 참된 움직임이다.'",
+        advice: "폭발적인 에너지를 건설적인 방향으로 분산시키고, 호흡을 고르는 연습이 필요합니다."
+    },
+    "손": {
+        physio: "결정 장애 및 주변 자극에 휩쓸리는 불안 장애",
+        biochem: "안정감을 주는 가바(GABA) 신경전달물질의 활성 저하",
+        philosophy: "부동심(不動心): '바람에 흔들리지 않는 뿌리 깊은 나무가 되라.'",
+        advice: "타인의 시선에서 벗어나 본인만의 '중심 잡기'를 위한 단호한 선언이 필요합니다."
+    },
+    "간": {
+        physio: "정체된 에너지로 인한 무기력증 및 회피성 성향",
+        biochem: "신진대사 저하 및 행복 호르몬인 엔도르핀 생성 둔화",
+        philosophy: "일체유심조(一切唯心造): '모든 고통과 멈춤은 마음이 만들어낸 장벽이다.'",
+        advice: "멈춰있는 산처럼 고립되지 마세요. 가벼운 산책이 마음의 정체를 뚫어줍니다."
+    },
+    "곤": {
+        physio: "과도한 배려로 인한 자기상실 및 만성 피로",
+        biochem: "옥시토신(사랑 호르몬) 과잉 의존으로 인한 의존성 불안",
+        philosophy: "무아(無我): '나를 비우는 과정에서 진정한 나를 발견하게 된다.'",
+        advice: "타인을 돌보기 전, 본인의 에너지를 먼저 충전하는 '건강한 이기심'이 필요합니다."
+    }
+};
+
+// 수검자의 메인 기질(fO)에 따른 마음 건강 분석 추출
+const mindData = mindHealthKeywords[fO] || mindHealthKeywords["건"];
+
+reportHTML += `
+<div class="report-section" style="margin-top: 40px; padding: 40px 30px; background: #f8faff; border-radius: 25px; border: 1px solid #e0e6ed; box-shadow: inset 0 0 20px rgba(74, 144, 226, 0.05);">
+    
+    <div class="section-title" style="margin-bottom: 35px; text-align: center; color: #2c3e50; font-weight: 900;">
+        <div style="font-size: 2rem; margin-bottom: 10px;">🧘</div>
+        <div style="font-size: 1.6rem; letter-spacing: -0.5px;">OMST™ 마음 건강 처방전</div>
+        <div style="width: 50px; height: 3px; background: #4a90e2; margin: 15px auto 0;"></div>
+    </div>
+
+    <div style="margin-bottom: 30px; padding: 0 10px;">
+        <div style="font-weight: 800; color: #4a90e2; margin-bottom: 12px; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.4rem;">🧬</span> 생리학적 관찰
+        </div>
+        <p style="font-size: 1.05rem; color: #444; line-height: 1.8; margin: 0; word-break: keep-all;">
+            현재 귀하의 기질은 <span style="font-weight: 700; color: #2c3e50;">${mindData.physio}</span> 상태에 노출되기 쉽습니다. 
+            특히 신경전달물질 측면에서 <span style="font-weight: 700; color: #d9534f;">${mindData.biochem}</span> 현상이 나타날 수 있으니 각별한 주의가 필요합니다.
+        </p>
+    </div>
+
+    <div style="background: #ffffff; padding: 30px; border-radius: 20px; border-left: 6px solid #4a90e2; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <div style="font-style: italic; color: #1a2a3a; margin-bottom: 15px; font-weight: 700; font-size: 1.2rem; line-height: 1.5; word-break: keep-all;">
+            "${mindData.philosophy}"
+        </div>
+        <p style="font-size: 1.05rem; color: #555; line-height: 1.9; margin: 0; word-break: keep-all;">
+            ${mindData.advice} <br>
+            <span style="color: #4a90e2; font-weight: 700;">몸과 마음의 조화</span>를 찾는 것이 오늘 귀하에게 가장 필요한 약입니다.
+        </p>
+    </div>
+</div>
+`;
+
+reportHTML += `
+<div class="final-essay" style="margin-top: 60px; padding: 50px 40px; background: #fff; text-align: center; line-height: 2; word-break: keep-all;">
+    
+    <div style="font-size: 1.2rem; color: #ccc; margin-bottom: 30px;">~</div>
+
+    <div style="max-width: 600px; margin: 0 auto; color: #333; font-family: 'Noto Serif KR', serif;">
+        <p style="font-size: 1.15rem; font-weight: 700; margin-bottom: 40px; color: #1a1a1a;">
+            "수많은 '나'의 조각들 속에서, 진짜 '나'는 어디에 있습니까?"
+        </p>
+
+        <p style="font-size: 1.05rem; color: #555; margin-bottom: 25px;">
+            방금 당신이 마주한 데이터들은 당신이 가진 성향의 지도일 뿐, 당신이라는 존재의 전부가 아닙니다. 
+            불교에서는 <b>제법무아(諸法無我)</b>라 하여, 고정불변하는 실체로서의 '나'는 존재하지 않는다고 가르칩니다. 
+            상황에 따라 드러나는 '주된 나'도, 숨겨진 '내면의 나'도 결국 인연에 따라 잠시 머무는 구름과 같습니다.
+        </p>
+
+        <p style="font-size: 1.05rem; color: #555; margin-bottom: 25px;">
+            우리가 이토록 세밀하게 스스로를 분석하는 이유는 '나'라는 틀에 갇히기 위함이 아닙니다. 
+            오히려 내가 어느 한쪽으로 치우쳐 있음을 명확히 발견하고, 
+            그 기울어짐을 바로잡아 <b>중용(中庸)</b>의 지혜를 회복하기 위함입니다. 
+            넘치지도 모자라지도 않는 그 평온한 균형의 상태가 동양철학이 도달하고자 하는 진정한 건강입니다.
+        </p>
+
+        <p style="font-size: 1.25rem; font-weight: 700; color: #2c3e50; margin-top: 40px;">
+            "과거는 이미 지나갔고, 미래는 아직 오지 않았습니다."
+        </p>
+
+        <p style="font-size: 1.05rem; color: #555; margin-bottom: 40px;">
+            결국 당신이 머물 수 있는 유일한 시간은 <b>'지금, 여기(Right Now, Right Here)'</b>뿐입니다. 
+            분석된 기질에 스스로를 가두지 마십시오. 다만 지금 이 순간의 호흡에 충실하며, 
+            기울어진 마음을 매 순간 부드럽게 중앙으로 옮겨놓는 연습을 지속하시길 바랍니다.
+        </p>
+
+        <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #eee;">
+            <p style="font-style: italic; color: #888; font-size: 1.25rem;">
+                "마음이 머무는 바 없이 그 마음을 낼지니라 (應無所住 而生其心)"<br>
+                - 금강경(金剛經) 中
+            </p>
+        </div>
+    </div>    
+</div>
+`;
+
+    // [최종 푸터] 시작 화면과 수미상관을 이루는 대형 로고 마감
+reportHTML += `
+    <div style="margin-top: 100px; text-align: center; padding: 80px 0 60px 0; border-top: 1.5px solid #f0f0f0; width: 100%; clear: both;">
+        
+        <div style="margin: 0 auto 30px auto; width: 100%; display: flex; justify-content: center;">
+            <img src="Omst_Logo_final.svg" alt="OMST Official Seal" 
+                 style="width: 90%; max-width: 480px; height: auto; margin: 0 auto; display: block;">
+        </div>
+
+        <div style="font-family: Arial, sans-serif; font-size: 0.85rem; color: #546E7A; letter-spacing: 2.5px; margin-bottom: 12px; text-transform: uppercase; font-weight: 300; text-align: center;">
+            Decode Your Innate Blueprint
+        </div>
+        <div style="font-size: 0.75rem; color: #B0BEC5; letter-spacing: 1px; font-family: Arial, sans-serif; text-align: center;">
+            © 2026 OMST Clinic. All Rights Reserved.
+        </div>
+        
+        <div style="height: 40px;"></div>
+    </div>
+`;
+
+reportHTML += `</div>`;
+
+    // --- [최종 출력 및 차트 실행] ---
+    document.getElementById('report-body').innerHTML = reportHTML;
+    document.getElementById('res-symbol').innerText = d.symbol;
+    document.getElementById('res-hex-title').innerText = d.name.replace(/[^\u4E00-\u9FFF]/g, '');
+    document.getElementById('res-binary').innerText = code;
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // 차트 재생성 (기존 객체 파괴 후 생성)
+    if (window.myRadarChart) window.myRadarChart.destroy();
+    const ctx = document.getElementById('energyChart').getContext('2d');
+    window.myRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['乾', '兌', '離', '震', '巽', '坎', '艮', '坤'],
+            datasets: [
+                { label: 'Persona', data: Object.values(outerPcts), borderColor: '#800020', backgroundColor: 'rgba(128,0,32,0.1)', borderWidth: 3 },
+                { label: 'Essence', data: Object.values(innerPcts), borderColor: '#6A5ACD', backgroundColor: 'rgba(106,90,205,0.1)', borderWidth: 3 }
+            ]
+        },
+        options: { 
+            scales: { r: { beginAtZero: true, ticks: { display: false }, pointLabels: { font: { size: 14, weight: 'bold' } } } },
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+}
+window.onload = renderQuestion;
+</script>
+</body>
+</html>
