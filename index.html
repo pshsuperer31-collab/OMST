@@ -24,28 +24,42 @@
         --font-serif: "AppleMyungjo", "Apple Myungjo", "NanumMyeongjo", "Nanum Myeongjo", "Batang", "serif";
     }
 
-    body {
-        margin: 0;
-        padding: 0;
-        display: block; /* flex 대신 일반 블록으로 변경 */
-        background: #f8f9fa;
-        overflow-y: auto;
-    }
+    /* 1. 화면 전체를 중앙으로 정렬하는 바디 설정 */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 세로 중앙 */
+    align-items: center;     /* 가로 중앙 */
+    min-height: 100vh;      /* 화면 높이 100% 사용 */
+    background-color: #f8f9fa;
+}
 
-    .container {
-    width: 92%;
-    max-width: 600px;
-    margin: 20px auto 40px auto; /* 좌우 자동 중앙 */
+ /* 2. 퀴즈 박스 (크기 키우고 중앙 배치) */
+.container {
+    width: 95%;             /* 모바일 대응 */
+    max-width: 700px;       /* [수정] 600px에서 700px로 크기 확장 */
+    margin: 40px auto;      /* 상하 여백 부여 */
     background: #fff;
-    padding: 25px;
-    border-radius: 25px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.06);
-    text-align: center; /* 내부 텍스트 모두 중앙 */
+    padding: 40px;          /* 내부 여백도 더 시원하게 */
+    border-radius: 30px;    /* 모서리를 더 부드럽게 */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1); /* 그림자를 더 깊게 해서 입체감 부여 */
+    text-align: center;
     
-    /* 높이 제한 해제 */
-    height: auto !important;
-    display: block !important;
-    }
+    /* 혹시 모를 잘림 방지 */
+    box-sizing: border-box; 
+    display: block;         /* important 제거됨 */
+}
+
+/* 3. 시작 페이지도 중앙 정렬 유지 */
+#start-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
 
     /* 2. 헤더 내부의 위쪽 여백 줄이기 (50px -> 10px) */
 #quiz-ui .header {
@@ -128,12 +142,23 @@ logo-area img {
         border-radius: 10px; 
         overflow: hidden; 
     }
-    .progress-fill { 
-        height: 100%; 
-        background: var(--burgundy); 
-        width: 0%; 
-        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
-    }
+   /* [수정 후 - 하늘색 처방] */
+.progress-fill {
+    height: 100%;
+    /* 🎨 원장님이 원하시는 화사한 스카이 블루 */
+    background-color: #3498DB; 
+    
+    /* [디테일] 입체감을 살짝 주는 그라데이션 (옵션) */
+    background-image: linear-gradient(90deg, #3498DB 0%, #5DADE2 100%);
+    
+    width: 0%;
+    border-radius: 10px; /* 모서리도 둥글게 */
+    
+    /* 쫀득하고 부드러운 움직임을 주는 텐션 값 */
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3); /* 은은한 파란 그림자 */
+}
     
     .arrow-indicator {
         position: absolute;
@@ -373,8 +398,60 @@ logo-area img {
 </style>
 </head>
 <body>
+<div id="start-page" style="display: block; text-align: center; padding: 70px 20px; background: #fff;">
+    
+    <div style="margin-bottom: 50px;">
+        <img src="Omst_Logo_final.svg" alt="OMST Logo" style="width: 85%; max-width: 420px;">
+    </div>
 
-<div class="container">
+    <h1 style="font-size: 1.9rem; font-weight: 800; line-height: 1.6; letter-spacing: -1px; margin-bottom: 30px; word-break: keep-all;">
+        <span style="color: #002D62; display: block; margin-bottom: 8px;">흔들리지 않는 본연의 나와</span>
+        <span style="color: #3498DB; display: block;">상황에 따라 마주하는 또 다른 나</span>
+    </h1>
+
+    <p style="color: #555; font-size: 1.15rem; line-height: 1.9; word-break: keep-all; margin-bottom: 55px; font-weight: 400;">
+        고대 64괘의 지혜와 2,000건의 임상 데이터가<br>
+        당신의 <strong style="color: #002D62; border-bottom: 2.5px solid #002D62; padding-bottom: 2px;">중용(中庸)</strong>과 마음의 평화를 향한 길을 안내합니다.
+    </p>
+
+    <button class="option-btn" 
+            style="width: 100%; max-width: 420px; background: #002D62 !important; color: #fff !important; border: none; font-size: 1.4rem; padding: 24px; border-radius: 22px; cursor: pointer; box-shadow: 0 15px 40px rgba(0,45,98,0.2); font-weight: 700; transition: transform 0.2s ease;"
+            onclick="showTest()">
+        나의 기질 탐구하기 ➔
+    </button>
+
+    <p style="margin-top: 60px; font-size: 0.85rem; color: #ced4da; letter-spacing: 2px; text-transform: uppercase;">
+        Oriental Mind Scan Test
+    </p>
+</div>
+
+    <div class="container" id="main-container" style="display: none;"> <div id="quiz-ui">
+            <div class="header" style="padding-top: 50px; margin-bottom: 40px; text-align: center;">
+                <img src="Omst_Logo_final.svg" alt="OMST Logo" style="width: 95%; max-width: 500px; height: auto; display: block; margin: 0 auto;">
+                <p style="margin: 15px 0 0 0; color: #546E7A; font-family: 'Arial', sans-serif; font-size: 0.95rem; letter-spacing: 4px; text-transform: uppercase; font-weight: 300;">
+                    Decode Your Innate Blueprint
+                </p>
+            </div>
+
+            <div class="progress-wrapper" style="margin: 20px 0 40px 0;">
+                <div class="progress-container">
+                    <div class="progress-fill" id="progress-bar"></div>
+                </div>
+            </div>
+
+            <div id="q-container"></div>
+        </div>
+
+        <div id="result-area" style="display:none;">
+            <div class="header"></div>
+            <div id="report-body"></div> 
+            <div style="text-align:center; margin-top:30px;">
+                <button onclick="location.reload()" style="padding:15px 40px; background:var(--burgundy); color:#fff; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1.1rem;">테스트 다시 하기</button>
+            </div>
+        </div>
+    </div>
+    
+<div class="container" id="main-container" style="display: none;"> 
     <div id="quiz-ui">
     <div class="header" style="padding-top: 50px; margin-bottom: 40px; text-align: center;">
         <img src="Omst_Logo_final.svg" alt="OMST Logo" style="width: 95%; max-width: 500px; height: auto; display: block; margin: 0 auto;">
@@ -404,6 +481,27 @@ logo-area img {
 </div>
 
 <script>
+
+    function showTest() {
+    // 1. 시작 페이지 요소를 찾아 변수에 담기
+    const startPage = document.getElementById('start-page');
+    // 2. 메인 컨테이너 요소를 찾아 변수에 담기
+    const mainContainer = document.getElementById('main-container');
+
+    if (startPage && mainContainer) {
+        // 시작 페이지는 숨기고 (none)
+        startPage.style.display = 'none';
+        // 메인 컨테이너는 보여준다 (block)
+        mainContainer.style.display = 'block';
+        
+        // 3. 첫 번째 질문 출력 함수 호출 (원장님 코드에 있는 함수명 확인)
+        if (typeof updateQuestion === 'function') {
+            updateQuestion();
+        } else if (typeof renderQuestion === 'function') {
+            renderQuestion();
+        }
+    }
+}
     // 1. [추가] Fisher-Yates 셔플 알고리즘 함수 (스크립트 최상단에 배치)
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
