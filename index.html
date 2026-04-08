@@ -394,6 +394,139 @@ logo-area img {
         .q-text { font-size: 1.25rem !important; min-height: 120px !important; }
     }
 }
+    /* 64괘 에너지 휠 전용 스타일 */
+    .wheel-wrapper {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        margin: 40px auto;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #E74C3C; 
+        box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .wheel-pieces {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        z-index: 1;
+    }
+
+    .piece {
+        position: absolute;
+        width: 50%;
+        height: 50%;
+        left: 50%;
+        top: 0;
+        transform-origin: 0% 100%;
+        clip-path: polygon(0 100%, 10% 0, 0 0); 
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .piece:hover {
+        filter: brightness(1.2);
+        z-index: 20;
+    }
+
+    .wheel-center {
+        position: absolute;
+        width: 140px; /* 크기 확대 */
+        height: 140px;
+        background: white;
+        border-radius: 50%;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border: 4px solid #800020;
+        transition: all 0.3s ease;
+    }
+
+    .wheel-center .title { 
+        font-size: 0.65rem; 
+        color: #d63384; 
+        font-weight: 800; 
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+    .wheel-center .symbol { 
+        font-size: 2.2rem; 
+        color: #4a0e1c; 
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+    .wheel-center .name { 
+        font-size: 1.05rem; 
+        font-weight: 800; 
+        color: #1a1a1a; 
+    }
+
+    /* 휠 셀렉터 버튼 스타일 */
+    .wheel-core-btn {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid #fce4ec;
+        background: white;
+        color: #d63384;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .wheel-core-btn:hover {
+        background: #fff0f5;
+        transform: translateY(-2px);
+    }
+    .wheel-core-btn.active {
+        background: #800020;
+        color: white;
+        border-color: #800020;
+        box-shadow: 0 4px 10px rgba(128,0,32,0.2);
+    }
+
+    @media (max-width: 600px) {
+        .wheel-wrapper {
+            width: 280px;
+            height: 280px;
+            margin: 30px auto;
+        }
+        .wheel-center {
+            width: 100px; /* 모바일에서 축소하여 조각 공간 확보 */
+            height: 100px;
+            border-width: 3px;
+        }
+        .wheel-center .title { font-size: 0.55rem; }
+        .wheel-center .symbol { font-size: 1.6rem; }
+        .wheel-center .name { font-size: 0.85rem; }
+        .wheel-core-btn {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+        }
+    }
+
+    #wheel-selector {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    .selector-row {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        width: 100%;
+    }
 
 </style>
 </head>
@@ -890,6 +1023,14 @@ const findData = (db, a, b) => {
             if (typeof renderEnergyChart === "function") {
                 renderEnergyChart('energyChart', outerPcts, innerPcts);
             }
+            // 64괘 에너지 휠 생성
+            if (typeof render64Wheel === "function") {
+                const mainHexName = d.name.split(' (')[0];
+                render64Wheel(mainHexName);
+                if (typeof renderWheelSelector === "function") {
+                    renderWheelSelector(mainHexName);
+                }
+            }
         }, 200);
     }
         
@@ -1027,6 +1168,8 @@ const findData = (db, a, b) => {
             };
         })
     ];
+    // 글로벌에 저장하여 셀렉터에서 접근 가능하게 함
+    window.allRelevantHexes = allRelevantHexes;
 
 // [6] 인간관계 역동 상세 분석 섹션 시작
 // 모바일 대응을 위한 공통 스타일 정의 (상단에 한 번만 추가)
@@ -1441,25 +1584,20 @@ function renderRomanticSection(selectedQue) {
     // 엔진 가동
     const atomic = getAtomicData(selectedQue, window.DB7_Atomic);
     
-    // 데이터 매칭 실패 시 출력 (디버깅용)
     if (!atomic) {
         console.warn(`[Atomic Lookup Failed] 매칭 실패: ${selectedQue}`);
         return `<div style="padding: 40px; text-align: center; color: #d63384; background: #fffcfc; border: 1px dashed #fce4ec; border-radius: 20px;">
                     <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">🧬 정밀 관계 분석 중...</div>
-                    <div style="font-size: 0.9rem; color: #999;">현재 조합(${selectedQue.join('+')})에 대한 심층 데이터를 구성하고 있습니다.</div>
+                    <div style="font-size: 0.9rem; color: #999;">현재 조합에 대한 심층 데이터를 구성하고 있습니다.</div>
                 </div>`;
     }
 
-    // 데이터가 있을 때 생성되는 핑크&자주톤 리포트
-    return `
+    // 2. 리포트 본문 HTML
+    let html = `
         <div class="report-section" style="margin-top: 60px; border-top: 2px solid #fce4ec; padding-top: 40px;">
             <div style="text-align: center; margin-bottom: 40px;">
                 <div style="font-size: 0.8rem; color: #d63384; letter-spacing: 4px; font-weight: 800; margin-bottom: 10px; opacity: 0.8;">ROMANTIC ATOMIC RESONANCE</div>
                 <h3 style="font-size: 1.8rem; color: #1a1a1a; margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 800;">마음의 거리와 관계의 온도</h3>
-                <p style="font-size: 0.95rem; color: #666; margin-top: 10px; line-height: 1.7;">
-                    가장 친밀한 거리에서 드러나는 당신의 숨겨진 사랑의 언어와<br>
-                    상대방과의 정서적 공명 방식을 분석합니다.
-                </p>
             </div>
 
             <div style="background: #fff; border: 1px solid #eee; border-left: 6px solid #d63384; padding: 30px; border-radius: 0 20px 20px 0; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
@@ -1467,16 +1605,10 @@ function renderRomanticSection(selectedQue) {
                     <span style="color: #d63384; font-weight: bold; font-size: 0.9rem; letter-spacing: 1px;">• 사회적 관계의 모습 (The Mask)</span>
                 </div>
                 <h4 style="font-size: 1.4rem; color: #1a1a1a; margin-bottom: 15px; font-family: 'Noto Serif KR', serif; font-weight: 800;">"${atomic.outer.mask}"</h4>
-                <p style="font-size: 1.05rem; line-height: 1.85; color: #444; margin-bottom: 20px; word-break: keep-all;">
-                    ${atomic.outer.description}
-                </p>
+                <p style="font-size: 1.05rem; line-height: 1.85; color: #444; margin-bottom: 20px; word-break: keep-all;">${atomic.outer.description}</p>
                 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                    <div style="font-size: 0.85rem; background: #fff0f5; color: #d63384; padding: 6px 14px; border-radius: 8px; border: 1px solid #fce4ec; font-weight: 600;">
-                        # ${atomic.outer.attitude}
-                    </div>
-                    <div style="font-size: 0.85rem; background: #f9f9f9; color: #666; padding: 6px 14px; border-radius: 8px; border: 1px solid #eee; font-weight: 600;">
-                        ⚡ 기질: ${atomic.outer.mbti}
-                    </div>
+                    <div style="font-size: 0.85rem; background: #fff0f5; color: #d63384; padding: 6px 14px; border-radius: 8px; border: 1px solid #fce4ec; font-weight: 600;"># ${atomic.outer.attitude}</div>
+                    <div style="font-size: 0.85rem; background: #f9f9f9; color: #666; padding: 6px 14px; border-radius: 8px; border: 1px solid #eee; font-weight: 600;">⚡ 기질: ${atomic.outer.mbti}</div>
                 </div>
             </div>
 
@@ -1485,10 +1617,7 @@ function renderRomanticSection(selectedQue) {
                     <span style="color: #4a0e1c; font-weight: bold; font-size: 0.9rem; letter-spacing: 1px;">• 친밀한 관계의 본질 (The Core)</span>
                 </div>
                 <div style="font-size: 1.25rem; font-weight: 800; color: #4a0e1c; margin-bottom: 15px;">"${atomic.inner.temperature}"</div>
-                <p style="font-size: 1.05rem; line-height: 1.85; color: #444; word-break: keep-all; margin-bottom: 25px;">
-                    ${atomic.inner.description}
-                </p>
-                
+                <p style="font-size: 1.05rem; line-height: 1.85; color: #444; word-break: keep-all; margin-bottom: 25px;">${atomic.inner.description}</p>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div style="padding: 18px; background: #fffafb; border-radius: 12px; border: 1px solid #fce4ec;">
                         <strong style="color: #d63384; font-size: 0.9rem; display: block; margin-bottom: 6px;">• 핵심 욕망</strong> 
@@ -1504,12 +1633,44 @@ function renderRomanticSection(selectedQue) {
             <div style="margin: 40px 0; padding: 30px; border: 1px solid #eee; border-radius: 20px; text-align: center; background: #fdfdfd;">
                 <p style="font-size: 1.1rem; color: #333; line-height: 1.9; margin: 0; word-break: keep-all;">
                     <span style="display: block; color: #d63384; font-weight: 800; margin-bottom: 10px; font-size: 0.95rem;">🎯 통합 가이드</span>
-                    "당신의 사랑은 <span style="color:#d63384; font-weight: 800; border-bottom: 2px solid #fce4ec;">${atomic.inner.desire}</span>이(가) 충족될 때 비로소 완성됩니다. <br>
-                    상대에게 이 이면의 기질을 정직하게 공유할 때, 진정한 기쁨과 안정감을 누릴 수 있습니다."
+                    "당신의 사랑은 <span style="color:#d63384; font-weight: 800; border-bottom: 2px solid #fce4ec;">${atomic.inner.desire}</span>이(가) 충족될 때 비로소 완성됩니다."
                 </p>
+            </div>
+
+            <div id="wheel-section" style="margin-top: 60px; padding: 40px 20px; background: #fffafb; border-radius: 30px; border: 1px solid #fce4ec; text-align: center;">
+                <div style="font-size: 0.75rem; color: #d63384; letter-spacing: 3px; font-weight: 800; margin-bottom: 10px; opacity: 0.6;">ENERGY RESONANCE</div>
+                <h3 style="font-size: 1.5rem; color: #4a0e1c; margin-bottom: 15px; font-family: 'Noto Serif KR', serif; font-weight: 800;">64기질 궁합 에너지 휠</h3>
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 25px;">보고 싶은 기질을 선택하여 64괘와의 조화를 확인하세요.</p>
+
+                <!-- 휠 코어 선택 버튼 컨테이너 -->
+                <div id="wheel-selector" style="margin-bottom: 35px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;"></div>
+                
+                <div class="wheel-wrapper">
+                    <div class="wheel-center">
+                        <span class="title">MY CORE</span>
+                        <span class="symbol" id="wheel-my-symbol">-</span>
+                        <span class="name" id="wheel-my-name">-</span>
+                    </div>
+                    <div id="wheel-pieces"></div>
+                </div>
+                
+                <div id="wheel-info" style="margin-top: 30px; min-height: 80px; font-size: 0.85rem; color: #b07d88;">
+                    조각에 마우스를 올리면 상대 기질과의 궁합을 확인합니다.
+                </div>
             </div>
         </div>
     `;
+
+    reportHTML += `
+    <div class="wheel-section" style="margin: 50px 0; text-align: center;">
+        <h3 style="font-size: 1.2rem; color: #800020; margin-bottom: 20px;">64괘 역동 에너지 휠</h3>
+        <div id="wheel-canvas-container" style="width: 100%; max-width: 500px; margin: 0 auto; position: relative;">
+            <canvas id="wheelCanvas" width="500" height="500" style="width: 100%; height: auto;"></canvas>
+        </div>
+    </div>
+`;
+
+    return html;
 }
    /**
  * [8] 커리어 및 재물 운용 전략 섹션 렌더링 (DB8_Atomic 연동형)
@@ -1774,7 +1935,228 @@ reportHTML += `</div>`;
             plugins: { legend: { position: 'bottom' } }
         }
     });
+  }
+/**
+ * [글로벌 데이터] 64괘별 공식 닉네임 정의 (이름 매칭 방식)
+ */
+window.ICHING_NICKNAMES = {
+    "중천건": "지치지 않는 태양의 리더", "중지곤": "만물을 품는 대지의 어머니",
+    "수뢰둔": "새로운 시작을 여는 개척자", "산수몽": "순수한 호기심의 탐구자",
+    "수천수": "때를 기다리는 지혜로운 전략가", "천수송": "정의를 위해 나서는 중재자",
+    "지수사": "부드러운 카리스마의 지휘관", "수지비": "마음을 잇는 따뜻한 조력자",
+    "풍천소축": "작은 행복을 가꾸는 예술가", "천택리": "예의와 품격을 갖춘 실천가",
+    "지천태": "조화와 평화를 만드는 평화주의자", "천지비": "고독을 즐기는 철학적 사색가",
+    "천화동인": "함께 미래를 그리는 협력자", "화천대유": "풍요로운 마음을 나누는 자산가",
+    "지산겸": "겸손함 속에 내공을 감춘 고수", "뇌지예": "즐거움을 전파하는 에너지 메이커",
+    "택뢰수": "흐름에 몸을 맡기는 유연한 자유인", "산풍고": "문제를 해결하는 깔끔한 정리술사",
+    "지택림": "희망을 전하는 밝은 안내자", "풍지관": "통찰력을 지닌 고요한 관찰자",
+    "화뢰서합": "시시비비를 가리는 명쾌한 심판관", "산화비": "내면의 아름다움을 가꾸는 미학자",
+    "산지박": "내실을 다지는 인내의 수행자", "지뢰복": "다시 일어서는 불굴의 재기론자",
+    "천뢰무망": "순수함을 간직한 직관의 소유자", "산천대축": "지식을 쌓아가는 현명한 학자",
+    "산뢰이": "몸과 마음을 보살피는 힐러", "택풍대과": "한계를 뛰어넘는 열정의 도전가",
+    "중수감": "깊은 바다 같은 감성 소유자", "중화리": "빛을 발산하는 화려한 예술가",
+    "택산함": "마음이 통하는 다정한 공감자", "뇌풍항": "한결같은 믿음을 주는 동반자",
+    "천산둔": "한발 물러설 줄 아는 여유로운 현자", "뇌천대장": "거침없이 전진하는 파워 엔진",
+    "화지진": "빛을 향해 나아가는 희망의 증거", "지화명이": "어둠 속에서도 길을 찾는 낙천가",
+    "풍화가인": "가족을 아끼는 따뜻한 수호자", "화택규": "다양성을 포용하는 열린 중재자",
+    "수산건": "역경을 헤쳐나가는 의지의 한국인", "뇌수해": "갈등을 풀어주는 마법의 해결사",
+    "산택손": "덜어낼 줄 아는 절제의 미학자", "풍뢰익": "성장을 돕는 아낌없는 후원자",
+    "택천쾌": "망설임 없는 단호한 결단가", "천풍구": "우연한 만남을 소중히 여기는 인연가",
+    "택지췌": "사람을 불러모으는 매력적인 리더", "지풍승": "끊임없이 성장하는 자기계발가",
+    "택수곤": "시련을 통해 단단해지는 보석", "수풍정": "마르지 않는 영감의 샘물",
+    "택화혁": "세상을 바꾸는 혁신적 개혁가", "화풍정": "전통과 안정을 중시하는 보수주의자",
+    "중뢰진": "세상을 깨우는 변화의 목소리", "중산간": "중심을 지키는 흔들림 없는 바위",
+    "풍산점": "차근차근 단계를 밟는 성실파", "뇌택귀매": "자유로운 영혼의 영원한 청춘",
+    "뇌화풍": "풍요를 즐기는 당당한 주인공", "화산려": "여행을 떠나는 낭만적 방랑자",
+    "중풍손": "스며들듯 다가오는 부드러운 바람", "중택태": "기쁨을 나누는 긍정주의자",
+    "풍수환": "마음의 벽을 허무는 개방론자", "수택절": "원칙을 지키는 올바른 중재자",
+    "풍택중부": "믿음으로 움직이는 진실한 사람", "뇌산소과": "작은 일에 정성을 다하는 완벽주의자",
+    "수화기제": "끝마무리가 확실한 유종의 미", "화수미제": "끝없는 도전을 즐기는 꿈꾸는 자"
+};
+
+/**
+ * [휠 차트] 64괘 궁합 에너지 휠 렌더링
+ */
+function getAllHexagrams() {
+    return Object.values(window.ichingDB).map(item => item.name.split(' (')[0].replace(/^\d+\.\s*/, ''));
 }
+
+function calculate64Score(myName, targetName) {
+    if (myName === targetName) return 100;
+    const db = window.ichingDB;
+    const myKey = Object.keys(db).find(key => db[key].name.includes(myName));
+    const targetKey = Object.keys(db).find(key => db[key].name.includes(targetName));
+    if (!myKey || !targetKey) return 50;
+    let diff = 0;
+    for(let i=0; i<6; i++) { if(myKey[i] !== targetKey[i]) diff++; }
+    return 100 - (diff * 10); 
+}
+
+function getGradientColor(score) {
+    let visualScore = (score - 40) * (100 / 60); 
+    if (visualScore < 0) visualScore = 0;
+    if (visualScore > 100) visualScore = 100;
+
+    if (visualScore >= 80) return '#3498DB'; // 파랑
+    if (visualScore >= 60) return '#2ECC71'; // 초록
+    if (visualScore >= 40) return '#F1C40F'; // 노랑
+    if (visualScore >= 20) return '#E67E22'; // 주황
+    return '#E74C3C';                       // 빨강
+}
+
+function showWheelInfo(guaName, score) {
+    const infoBox = document.getElementById('wheel-info');
+    const db = window.ichingDB;
+    if (!db || !infoBox) return;
+
+    let targetGua = null;
+    let targetNickname = "기질 분석 중...";
+
+    Object.keys(db).forEach(key => {
+        // 이름에 포함되어 있는지 확인 (숫자 제거된 순수 이름 기준)
+        const pureDbName = db[key].name.split(' (')[0].replace(/^\d+\.\s*/, '');
+        if (pureDbName === guaName) { 
+            targetGua = db[key]; 
+        }
+    });
+    
+    if (!targetGua) return;
+
+    // 닉네임 매칭 (순수 이름 기준)
+    Object.keys(window.ICHING_NICKNAMES).forEach(nkey => {
+        if (guaName.includes(nkey)) {
+            targetNickname = window.ICHING_NICKNAMES[nkey];
+        }
+    });
+
+    let vScore = (score - 40) * (100 / 60);
+    if (vScore < 0) vScore = 0;
+
+    let status, statusColor;
+    if (vScore >= 80) { status = "✅ 최상의 조화"; statusColor = "#3498DB"; }
+    else if (vScore >= 60) { status = "🌿 안정적 관계"; statusColor = "#2ECC71"; }
+    else if (vScore >= 40) { status = "⚖️ 평범한 관계"; statusColor = "#F1C40F"; }
+    else if (vScore >= 20) { status = "⚠️ 서먹한 관계"; statusColor = "#E67E22"; }
+    else { status = "🚨 충돌 주의"; statusColor = "#E74C3C"; }
+
+    infoBox.innerHTML = `
+        <div style="background:#fff; padding:12px; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.1); border-bottom:4px solid ${statusColor};">
+            <div style="font-size:1.05rem; color:#800020; font-weight:800; margin-bottom:4px; word-break:keep-all;">
+                ${targetGua.symbol} ${guaName} : ${targetNickname}
+            </div>
+            <div style="font-size:0.95rem; font-weight:700; color:${statusColor};">
+                ${status} (${score}점)
+            </div>
+        </div>
+    `;
+}
+
+function render64Wheel(userHexaName) {
+    const container = document.getElementById('wheel-pieces');
+    if (!container) return;
+
+    const allHexas = getAllHexagrams(); 
+    const angleStep = 360 / 64;
+
+    let scoredList = allHexas.map(target => ({
+        name: target,
+        score: calculate64Score(userHexaName, target)
+    }));
+
+    scoredList.sort((a, b) => b.score - a.score);
+
+    let html = '';
+    scoredList.forEach((item, i) => {
+        const color = getGradientColor(item.score);
+        const rotation = i * angleStep;
+        html += `
+            <div class="piece" 
+                 style="transform: rotate(${rotation}deg); background: ${color};"
+                 onmouseover="showWheelInfo('${item.name}', ${item.score})">
+            </div>`;
+    });
+    
+    container.innerHTML = html;
+    
+    // 센터 정보 업데이트 (심볼 + 이름)
+    const wheelCenterName = document.getElementById('wheel-my-name');
+    const wheelCenterSymbol = document.getElementById('wheel-my-symbol');
+    
+    if (wheelCenterName && wheelCenterSymbol) {
+        const db = window.ichingDB;
+        let symbol = "-";
+        Object.keys(db).forEach(key => {
+            if (db[key].name.includes(userHexaName)) {
+                symbol = db[key].symbol;
+            }
+        });
+        
+        wheelCenterSymbol.innerText = symbol;
+        wheelCenterName.innerText = userHexaName;
+    }
+}
+
+/**
+ * 휠 코어 선택기 렌더링 (1항 상단, 나머지 하단 구조)
+ */
+function renderWheelSelector(activeName) {
+    const selector = document.getElementById('wheel-selector');
+    if (!selector || !window.allRelevantHexes) return;
+
+    selector.innerHTML = '';
+    
+    // 상단 행 (기본 기질)
+    const topRow = document.createElement('div');
+    topRow.className = 'selector-row';
+    
+    // 하단 행 (나머지 역동/잠재)
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'selector-row';
+
+    window.allRelevantHexes.forEach((hex, idx) => {
+        const pureName = hex.name.split(' (')[0];
+        const btn = document.createElement('button');
+        btn.className = 'wheel-core-btn' + (pureName === activeName ? ' active' : '');
+        
+        let label = hex.label || (hex.isMain ? "기본" : "잠재");
+        if (label.includes("관계 스타일")) label = "기본 기질";
+        if (label.includes("내면의 변수")) label = "내면 역동";
+        if (label.includes("외부적 환경")) label = "환경 역동";
+        
+        btn.innerHTML = `<span style="display:block; font-size:0.7rem; opacity:0.7; margin-bottom:2px;">${label}</span>${pureName}`;
+        btn.onclick = () => changeWheelCore(pureName, btn);
+        
+        // 레이아웃 배분: 기본 기질은 위로, 나머지는 아래로
+        if (hex.isMain) {
+            topRow.appendChild(btn);
+        } else {
+            bottomRow.appendChild(btn);
+        }
+    });
+
+    selector.appendChild(topRow);
+    if (bottomRow.children.length > 0) {
+        selector.appendChild(bottomRow);
+    }
+}
+
+/**
+ * 휠 코어 변경 및 재렌더링
+ */
+function changeWheelCore(hexName, btnElement) {
+    // 버튼 활성화 상태 변경
+    const buttons = document.querySelectorAll('.wheel-core-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
+
+    // 휠 재렌더링
+    render64Wheel(hexName);
+    
+    // 안내 메시지 업데이트
+    const infoBox = document.getElementById('wheel-info');
+    if (infoBox) infoBox.innerText = `기준 기질이 [${hexName}] (으)로 변경되었습니다. 조각을 올려 궁합을 확인하세요.`;
+}
+
 window.onload = renderQuestion;
 </script>
 </body>
