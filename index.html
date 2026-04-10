@@ -16,7 +16,7 @@
     <script src="db9.js?v=2"></script>
     <style>
     :root { 
-        --burgundy: #800020; 
+        --navy: #002D62; 
         --bg-light: #ffffff; 
         --text-dark: #2c3e50; 
         /* 시스템 기본 폰트 설정 (따로 저장 안 해도 나오는 폰트) */
@@ -220,6 +220,48 @@ logo-area img {
     max-width: 400px;       /* 버튼이 너무 길어지지 않게 제한 */
     text-align: center;
     justify-content: center; /* 내부 텍스트 중앙 */
+    transition: all 0.3s ease;
+}
+
+.option-btn:hover, .option-btn:active {
+    background-color: #3498DB !important;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+}
+
+/* 성별 선택 토글 버튼 */
+.gender-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+.gender-btn {
+    flex: 1;
+    max-width: 120px;
+    padding: 15px;
+    border: 2px solid #eee;
+    border-radius: 15px;
+    background: #fff;
+    color: #888;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.gender-btn.active {
+    border-color: #002D62;
+    background: #002D62;
+    color: #fff;
+    box-shadow: 0 5px 15px rgba(0, 45, 98, 0.2);
+}
+
+.gender-btn:hover:not(.active) {
+    background: #f0f4f8;
+    border-color: #3498DB;
+    color: #3498DB;
 }
 
     /* 3. 옵션 버튼 사이의 간격 조정 */
@@ -230,7 +272,7 @@ logo-area img {
         margin: 0 auto 30px auto; /* 하단 이전버튼과 간격 확보 */
     }
     .opt-btn { padding: 18px; border: 1.5px solid #eee; border-radius: 15px; cursor: pointer; transition: 0.2s; font-size: 1.15rem; background: #fff; font-weight: 600; }
-    .opt-btn:hover { border-color: var(--burgundy); background: #fff5f5; color: var(--burgundy); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(128,0,32,0.1); }
+    .opt-btn:hover { border-color: #3498DB; background: #f0f4f8; color: #3498DB; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(52,152,219,0.1); }
 
     /* 결과 페이지 디자인 */
     #result-area {
@@ -258,18 +300,18 @@ logo-area img {
         font-family: var(--font-serif); 
         font-size: 1.75rem; /* 아주 조금 더 키웠습니다 */
         font-weight: 700; 
-        color: var(--burgundy); 
+        color: var(--navy); 
         text-align: center; 
         display: block; 
         margin-bottom: 10px;
     }
 
-    .iching-symbol { font-size: 9rem; color: var(--burgundy); text-align: center; }
+    .iching-symbol { font-size: 9rem; color: var(--navy); text-align: center; }
     .hex-full-name { font-size: 2.8rem; font-weight: 900; text-align: center; }
     .report-section { background: #fafafa; padding: 25px; border-radius: 18px; border: 1px solid #f0f0f0; margin-bottom: 20px; }
-    .section-title { font-weight: 800; color: var(--burgundy); font-size: 1.2rem; margin-bottom: 12px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+    .section-title { font-weight: 800; color: var(--navy); font-size: 1.2rem; margin-bottom: 12px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
     
-    .highlight-box { background: var(--burgundy); color: #fff; padding: 25px; border-radius: 18px; margin-bottom: 25px; text-align: center; }
+    .highlight-box { background: var(--navy); color: #fff; padding: 25px; border-radius: 18px; margin-bottom: 25px; text-align: center; }
     .highlight-box h3 { color: #ffd700; margin: 0 0 10px 0; }
 
     /* 모바일 최적화 (화면 너비 768px 이하일 때 자동 실행) */
@@ -296,7 +338,7 @@ logo-area img {
     .section-title { 
         font-size: 1.3rem !important; 
         margin-bottom: 20px !important; 
-    }
+        }
 
     /* 4. 본문 글자 크기 (전체적으로 살짝 슬림하게) */
     .detail-item, .zen-content, .advice-content, p { 
@@ -447,7 +489,7 @@ logo-area img {
         justify-content: center;
         align-items: center;
         box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        border: 4px solid #800020;
+        border: 4px solid #002D62;
         transition: all 0.3s ease;
     }
 
@@ -460,7 +502,7 @@ logo-area img {
     }
     .wheel-center .symbol { 
         font-size: 2.2rem; 
-        color: #4a0e1c; 
+        color: #001a3d; 
         line-height: 1;
         margin-bottom: 2px;
     }
@@ -488,10 +530,10 @@ logo-area img {
         transform: translateY(-2px);
     }
     .wheel-core-btn.active {
-        background: #800020;
+        background: #002D62;
         color: white;
-        border-color: #800020;
-        box-shadow: 0 4px 10px rgba(128,0,32,0.2);
+        border-color: #002D62;
+        box-shadow: 0 4px 10px rgba(0,45,98,0.2);
     }
 
     @media (max-width: 600px) {
@@ -542,13 +584,27 @@ logo-area img {
         <span style="color: #3498DB; display: block;">상황에 따라 마주하는 또 다른 나</span>
     </h1>
 
-    <p style="color: #555; font-size: 1.15rem; line-height: 1.9; word-break: keep-all; margin-bottom: 55px; font-weight: 400;">
+    <p style="color: #555; font-size: 1.15rem; line-height: 1.9; word-break: keep-all; margin-bottom: 45px; font-weight: 400;">
         고대 64괘의 지혜와 2,000건의 임상 데이터가<br>
         당신의 <strong style="color: #002D62; border-bottom: 2.5px solid #002D62; padding-bottom: 2px;">중용(中庸)</strong>과 마음의 평화를 향한 길을 안내합니다.
     </p>
 
+    <!-- 수검자 정보 입력 영역 추가 -->
+    <div style="width: 100%; max-width: 420px; margin: 0 auto 50px auto; text-align: left; background: #fdfdfd; padding: 30px; border-radius: 25px; border: 1px solid #f0f0f0; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+        <label for="user-name" style="display: block; font-size: 0.95rem; color: #002D62; margin-bottom: 12px; font-weight: 800; letter-spacing: -0.5px;">수검자 성함</label>
+        <input type="text" id="user-name" placeholder="성함을 입력해주세요" 
+               style="width: 100%; padding: 20px; border: 2.5px solid #eee; border-radius: 18px; font-size: 1.15rem; box-sizing: border-box; outline: none; transition: border-color 0.3s; font-family: var(--font-main);"
+               onfocus="this.style.borderColor='#3498DB'" onblur="this.style.borderColor='#eee'">
+        
+        <label style="display: block; font-size: 0.95rem; color: #002D62; margin-top: 30px; margin-bottom: 12px; font-weight: 800; letter-spacing: -0.5px;">성별 선택</label>
+        <div class="gender-group" style="margin-bottom: 0;">
+            <button type="button" id="btn-male" class="gender-btn" onclick="selectGender('남')" style="font-size: 1.1rem; padding: 18px;">남성</button>
+            <button type="button" id="btn-female" class="gender-btn" onclick="selectGender('여')" style="font-size: 1.1rem; padding: 18px;">여성</button>
+        </div>
+    </div>
+
     <button class="option-btn" 
-            style="width: 100%; max-width: 420px; background: #002D62 !important; color: #fff !important; border: none; font-size: 1.4rem; padding: 24px; border-radius: 22px; cursor: pointer; box-shadow: 0 15px 40px rgba(0,45,98,0.2); font-weight: 700; transition: transform 0.2s ease;"
+            style="width: 100%; max-width: 420px; background: #002D62 !important; color: #fff !important; border: none; font-size: 1.4rem; padding: 24px; border-radius: 22px; cursor: pointer; box-shadow: 0 15px 40px rgba(0,45,98,0.2); font-weight: 700; transition: all 0.3s ease;"
             onclick="showTest()">
         나의 기질 탐구하기 ➔
     </button>
@@ -579,7 +635,7 @@ logo-area img {
             <div class="header"></div>
             <div id="report-body"></div> 
             <div style="text-align:center; margin-top:30px;">
-                <button onclick="location.reload()" style="padding:15px 40px; background:var(--burgundy); color:#fff; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1.1rem;">테스트 다시 하기</button>
+                <button onclick="location.reload()" style="padding:15px 40px; background:var(--navy); color:#fff; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1.1rem;">테스트 다시 하기</button>
             </div>
         </div>
     </div>
@@ -608,33 +664,54 @@ logo-area img {
     <div id="report-body"></div> 
     
     <div style="text-align:center; margin-top:30px;">
-        <button onclick="location.reload()" style="padding:15px 40px; background:var(--burgundy); color:#fff; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1.1rem;">테스트 다시 하기</button>
+        <button onclick="location.reload()" style="padding:15px 40px; background:var(--navy); color:#fff; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1.1rem;">테스트 다시 하기</button>
     </div>
 </div>
 </div>
 
 <script>
 
-    function showTest() {
-    // 1. 시작 페이지 요소를 찾아 변수에 담기
-    const startPage = document.getElementById('start-page');
-    // 2. 메인 컨테이너 요소를 찾아 변수에 담기
-    const mainContainer = document.getElementById('main-container');
+    let userName = "";
+    let userGender = "";
 
-    if (startPage && mainContainer) {
-        // 시작 페이지는 숨기고 (none)
-        startPage.style.display = 'none';
-        // 메인 컨테이너는 보여준다 (block)
-        mainContainer.style.display = 'block';
+    function selectGender(gender) {
+        userGender = gender;
+        document.getElementById('btn-male').classList.remove('active');
+        document.getElementById('btn-female').classList.remove('active');
         
-        // 3. 첫 번째 질문 출력 함수 호출 (원장님 코드에 있는 함수명 확인)
-        if (typeof updateQuestion === 'function') {
-            updateQuestion();
-        } else if (typeof renderQuestion === 'function') {
-            renderQuestion();
+        if (gender === '남') {
+            document.getElementById('btn-male').classList.add('active');
+        } else {
+            document.getElementById('btn-female').classList.add('active');
         }
     }
-}
+
+    function showTest() {
+        const nameInput = document.getElementById('user-name');
+        userName = nameInput ? nameInput.value.trim() : "";
+        
+        if (!userName) {
+            alert("성함을 입력해주세요.");
+            if(nameInput) nameInput.focus();
+            return;
+        }
+        if (!userGender) {
+            alert("성별을 선택해주세요.");
+            return;
+        }
+
+        const startPage = document.getElementById('start-page');
+        const mainContainer = document.getElementById('main-container');
+
+        if (startPage && mainContainer) {
+            startPage.style.display = 'none';
+            mainContainer.style.display = 'block';
+            
+            if (typeof renderQuestion === 'function') {
+                renderQuestion();
+            }
+        }
+    }
     // 1. [추가] Fisher-Yates 셔플 알고리즘 함수 (스크립트 최상단에 배치)
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -674,7 +751,7 @@ logo-area img {
     { type: "outer", trigram: "리", text: "여행을 갈 때 엑셀이나 앱을 활용해 분 단위로 동선과 맛집 평점을 분석한다." }, // 여행스타일
     { type: "inner", trigram: "리", weight: 1.2, text: "나의 독창적인 감각이나 성과가 세상 사람들에게 화려하게 인정받기를 갈구한다." },
     { type: "outer", trigram: "리", text: "사건의 핵심을 꿰뚫어 보고 냉철하게 비판하여 주변에서 '칼 같다'는 소리를 듣는다." },
-    { type: "inner", trigram: "리", text: "누군가 나의 가치를 몰라봐 주거나 과소평가할 때 깊은 분노를 느낀다." },
+    { type: "inner", trigram: "리", text: "누구가 나의 가치를 몰라봐 주거나 과소평가할 때 깊은 분노를 느낀다." },
     { type: "outer", trigram: "리", weight: 1.3, text: "데이터와 논리가 부족한 제안은 아무리 친한 사람이라도 쉽게 받아들이지 않는다." },
     { type: "inner", trigram: "리", text: "복잡한 현상을 단순하고 명쾌한 이론으로 정리해서 남들에게 설명하는 것을 즐긴다." },
     { type: "outer", trigram: "리", weight: -0.5, text: "정답이 없는 모호한 상황도 '그럴 수 있지'라며 너그럽게 넘어가는 편이다." }, // [감점] 리 기질 반대
@@ -860,13 +937,13 @@ logo-area img {
    window.myRadarChart = new Chart(ctx, {
         type: 'radar',
         data: {
-            labels: ['乾', '兌', '離', '震', '巽', '坎', '艮', '坤'],
+            labels: ['乾', '兑', '离', '震', '巽', '坎', '艮', '坤'],
             datasets: [
                 {
                     label: 'Persona (상괘)',
                     data: fullOuter,
-                    borderColor: '#800020',
-                    backgroundColor: 'rgba(128, 0, 32, 0.1)',
+                    borderColor: '#002D62',
+                    backgroundColor: 'rgba(0, 45, 98, 0.1)',
                     borderWidth: 3,
                     pointRadius: 2 
                                     },
@@ -982,11 +1059,11 @@ const findData = (db, a, b) => {
         </p>
     </div>
 
-    <hr style="border: 0; height: 1px; background: linear-gradient(to right, transparent, #800020, transparent); width: 60%; margin: 40px auto; opacity: 0.3;">
+    <hr style="border: 0; height: 1px; background: linear-gradient(to right, transparent, #002D62, transparent); width: 60%; margin: 40px auto; opacity: 0.3;">
 
     <div style="text-align: center; margin-bottom: 80px; padding: 0 20px;">
         <h2 style="font-size: 1.8rem; font-weight: 800; color: #1a1a1a; margin-bottom: 25px; letter-spacing: -1px;">
-            <span style="color: #800020; border-bottom: 3.5px solid #800020; padding-bottom: 4px;">${displayName}</span> 님의 정밀 기질 리포트
+            <span style="color: #002D62; border-bottom: 3.5px solid #002D62; padding-bottom: 4px;">${displayName}</span> 님의 정밀 기질 리포트
         </h2>
         
         <div style="font-family: 'Gowun Batang', serif; font-size: 0.95rem; color: #999; line-height: 2.0;">
@@ -1001,7 +1078,7 @@ const findData = (db, a, b) => {
 
         // 핵심 하이라이트 박스 (대표괘) - 디자인 강화
     reportHTML += `
-    <div class="highlight-box" style="padding: 35px 25px; margin-bottom: 10px; text-align: center; background: #800020; border-radius: 20px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(128,0,32,0.2);">
+    <div class="highlight-box" style="padding: 35px 25px; margin-bottom: 10px; text-align: center; background: #002D62; border-radius: 20px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,45,98,0.2);">
         <div style="position: absolute; top: -10px; right: -10px; font-size: 8rem; color: rgba(255,255,255,0.07); pointer-events: none; font-family: serif;">${d.symbol}</div>
         <div style="color:#ffd700; font-size: 1.2rem; letter-spacing: 5px; margin-bottom: 12px; font-weight: bold;">MAIN CHARACTER</div>
         <h2 style="margin: 0 0 15px 0; font-size: 1.6rem; color: #fff; position: relative;">${d.name}</h2>
@@ -1062,7 +1139,7 @@ const findData = (db, a, b) => {
                     <div style="display: grid; grid-template-columns: repeat(${potentialHexes.length}, 1fr); gap: 10px;">
                         ${potentialHexes.map(hex => `
                             <div style="background: #fff; border: 1px solid #eee; padding: 15px 8px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-                                <div style="font-size: 1.6rem; color: #800020; margin-bottom: 4px;">${hex.symbol}</div>
+                                <div style="font-size: 1.6rem; color: #002D62; margin-bottom: 4px;">${hex.symbol}</div>
                                 <div style="font-size: 0.85rem; font-weight: bold; color: #444;">${hex.name.split('(')[0]}</div>
                                 <div style="font-size: 0.65rem; color: #aaa; margin-top: 3px; white-space: nowrap;">${hex.label}</div>
                             </div>
@@ -1084,18 +1161,18 @@ const findData = (db, a, b) => {
     if (d9) {
         // [5] 핵심 기질 통찰 (버건디 박스) - 기존 reportHTML에 '추가(+=)' 합니다.
         reportHTML += `
-    <div style="background: rgba(128,0,32,0.04); border-left: 6px solid #800020; padding: 35px 30px; border-radius: 0 20px 20px 0; margin: 60px 0 50px 0; box-shadow: 5px 5px 20px rgba(0,0,0,0.02);">
+    <div style="background: rgba(0,45,98,0.04); border-left: 6px solid #002D62; padding: 35px 30px; border-radius: 0 20px 20px 0; margin: 60px 0 50px 0; box-shadow: 5px 5px 20px rgba(0,0,0,0.02);">
         
-        <h4 style="margin-top: 0; margin-bottom: 25px; color: #800020; font-family: 'Gowun Batang', serif; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">
+        <h4 style="margin-top: 0; margin-bottom: 25px; color: #002D62; font-family: 'Gowun Batang', serif; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">
             [ 본연의 자아와 외연적 투영]
         </h4>
 
         <p style="font-family: 'Gowun Batang', serif; font-size: 1.15rem; line-height: 1.8; color: #333; margin: 0; word-break: keep-all; opacity: 0.9;">
             
-            "현재 도출된 <b style="color: #800020; font-size: 1.20rem;">메인 캐릭터 ${d.name} </b>는 <br> 귀하의 본질적인 중심을 잡고 있는 핵심 에너지입니다. <br>
+            "현재 도출된 <b style="color: #002D62; font-size: 1.20rem;">메인 캐릭터 ${d.name} </b>는 <br> 귀하의 본질적인 중심을 잡고 있는 핵심 에너지입니다. <br>
 
             하지만 함께 분석된 괘들은 특정한 상황과 환경에서 <br>
-            <b style="background: linear-gradient(to top, rgba(128,0,32,0.1) 40%, transparent 40%);">'또 다른 당신의 모습'</b>으로 발현될 수 있습니다. <br>
+            <b style="background: linear-gradient(to top, rgba(0,45,98,0.1) 40%, transparent 40%);">'또 다른 당신의 모습'</b>으로 발현될 수 있습니다. <br>
             또다른 당신에 대해 탐구해보세요."
         </p>
     </div>
@@ -1106,18 +1183,18 @@ const findData = (db, a, b) => {
         <div class="mobile-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 50px;">
             <div class="compact-card" style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
                 <h4 style="color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 8px; margin-bottom: 15px; font-size: 0.95rem;">사회적 자아 (Outer)</h4>
-                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 관계의 가면</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p1}</p></div>
-                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 사회적 엔진</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p2}</p></div>
-                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 일상의 결</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p3}</p></div>
-                <div><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 건강 태도</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p4}</p></div>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--navy); font-size:0.82rem;">● 관계의 가면</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p1}</p></div>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--navy); font-size:0.82rem;">● 사회적 엔진</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p2}</p></div>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--navy); font-size:0.82rem;">● 일상의 결</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p3}</p></div>
+                <div><b class="compact-title" style="color:var(--navy); font-size:0.82rem;">● 건강 태도</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.outer.p4}</p></div>
             </div>
 
             <div class="compact-card" style="background: #fcfcfc; padding: 20px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
-                <h4 style="color: var(--burgundy); border-bottom: 2px solid var(--burgundy); padding-bottom: 8px; margin-bottom: 15px; font-size: 0.95rem;">본질적 자아 (Inner)</h4>
-                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 무의식적 본질</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p5}</p></div>
-                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 심리적 역린</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p6}</p></div>
-                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 회복 기전</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p7}</p></div>
-                <div><b class="compact-title" style="color:var(--burgundy); font-size:0.82rem;">● 치유 조건</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p8}</p></div>
+                <h4 style="color: var(--navy); border-bottom: 2px solid var(--navy); padding-bottom: 8px; margin-bottom: 15px; font-size: 0.95rem;">본질적 자아 (Inner)</h4>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--navy); font-size:0.82rem;">● 무의식적 본질</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p5}</p></div>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--navy); font-size:0.82rem;">● 심리적 역린</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p6}</p></div>
+                <div style="margin-bottom: 12px;"><b class="compact-title" style="color:var(--navy); font-size:0.82rem;">● 회복 기전</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p7}</p></div>
+                <div><b class="compact-title" style="color:var(--navy); font-size:0.82rem;">● 치유 조건</b><p class="compact-font" style="margin:4px 0; font-size:0.9rem; color:#555;">${d9.inner.p8}</p></div>
             </div>
         </div>`;
     }
@@ -1130,7 +1207,7 @@ const findData = (db, a, b) => {
     reportHTML += `<div class="report-section"><div class="section-title" style="text-align: center; margin-bottom: 20px;">1. 사회적 페르소나 (상괘 분석)</div>`;
     if (isOComplex) {
         const cD3 = findData(window.db3, fO, secondO);
-        reportHTML += `<div style="text-align:center; margin-bottom:15px;"><span style="background:#800020; color:#fff; padding:4px 12px; border-radius:20px; font-size:0.9rem; font-weight:bold;">✨ 상괘 경합 : ${fO} ↔ ${secondO}</span></div>
+        reportHTML += `<div style="text-align:center; margin-bottom:15px;"><span style="background:#002D62; color:#fff; padding:4px 12px; border-radius:20px; font-size:0.9rem; font-weight:bold;">✨ 상괘 경합 : ${fO} ↔ ${secondO}</span></div>
                        <div class="desc" style="${pStyle}">${cD3?.upper?.content || window.db2[fO]?.upper?.content || "데이터를 준비 중입니다."}</div>`;
     } else {
         reportHTML += `<div class="desc" style="${pStyle}">${window.db2[fO]?.upper?.content || ""}</div>`;
@@ -1195,22 +1272,22 @@ const trigramList = ["건", "태", "이", "진", "손", "감", "간", "곤"];
 
 allRelevantHexes.forEach((hex, idx) => {
     const isMain = hex.isMain;
-    const pureName = hex.name.split('(')[0];
+    const pureName = hex.name.split(' (')[0];
 
    // --- CASE A: 본괘 (Main Hexagram) 가로 정렬 최적화 ---
 if (isMain) {
     const db5Data = window.db5_expanded[hex.binary] || {};
 
     reportHTML += `
-        <div class="hex-detail-card" style="background: #fff; border: 1px solid #eee; border-top: 4px solid #800020; padding: 30px 25px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.04); color: #333; text-align: center;">
+        <div class="hex-detail-card" style="background: #fff; border: 1px solid #eee; border-top: 4px solid #002D62; padding: 30px 25px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.04); color: #333; text-align: center;">
             
             <div style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #f5f5f5;">
-                <div style="font-size: 0.8rem; color: #800020; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 15px; text-transform: uppercase;">
+                <div style="font-size: 0.8rem; color: #002D62; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 15px; text-transform: uppercase;">
                     나의 타고난 성격의 핵심
                 </div>
                 
                 <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-                    <span style="font-size: 2.8rem; color: #800020; line-height: 1;">${hex.symbol}</span>
+                    <span style="font-size: 2.8rem; color: #002D62; line-height: 1;">${hex.symbol}</span>
                     
                     <div style="font-size: 1.6rem; font-weight: 800; color: #1a1a1a; display: flex; align-items: baseline;">
                         ${pureName} 
@@ -1221,8 +1298,8 @@ if (isMain) {
                 </div>
             </div>
 
-            <div style="background: rgba(128,0,32,0.02); padding: 22px; border-radius: 12px; margin-bottom: 25px; border-top: 2px solid #800020;">
-                <div style="font-size: 0.75rem; color: #800020; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">[ 성격 요약 ]</div>
+            <div style="background: rgba(0,45,98,0.02); padding: 22px; border-radius: 12px; margin-bottom: 25px; border-top: 2px solid #002D62;">
+                <div style="font-size: 0.75rem; color: #002D62; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">[ 성격 요약 ]</div>
                 <div style="font-size: 1.1rem; color: #222; font-weight: 700; line-height: 1.7; word-break: keep-all;">
                     "${db5Data.persona || '데이터 준비 중'}"
                 </div>
@@ -1612,16 +1689,16 @@ function renderRomanticSection(selectedQue) {
                 </div>
             </div>
 
-            <div style="background: #fff; border: 1px solid #eee; border-left: 6px solid #4a0e1c; padding: 30px; border-radius: 0 20px 20px 0; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+            <div style="background: #fff; border: 1px solid #eee; border-left: 6px solid #001a3d; padding: 30px; border-radius: 0 20px 20px 0; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; border-bottom: 1px solid #f5f5f5; padding-bottom: 12px;">
-                    <span style="color: #4a0e1c; font-weight: bold; font-size: 0.9rem; letter-spacing: 1px;">• 친밀한 관계의 본질 (The Core)</span>
+                    <span style="color: #001a3d; font-weight: bold; font-size: 0.9rem; letter-spacing: 1px;">• 친밀한 관계의 본질 (The Core)</span>
                 </div>
-                <div style="font-size: 1.25rem; font-weight: 800; color: #4a0e1c; margin-bottom: 15px;">"${atomic.inner.temperature}"</div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: #001a3d; margin-bottom: 15px;">"${atomic.inner.temperature}"</div>
                 <p style="font-size: 1.05rem; line-height: 1.85; color: #444; word-break: keep-all; margin-bottom: 25px;">${atomic.inner.description}</p>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div style="padding: 18px; background: #fffafb; border-radius: 12px; border: 1px solid #fce4ec;">
                         <strong style="color: #d63384; font-size: 0.9rem; display: block; margin-bottom: 6px;">• 핵심 욕망</strong> 
-                        <span style="color: #4a0e1c; font-weight: 600;">${atomic.inner.desire}</span>
+                        <span style="color: #001a3d; font-weight: 600;">${atomic.inner.desire}</span>
                     </div>
                     <div style="padding: 18px; background: #fffcfc; border-radius: 12px; border: 1px solid #ffeded;">
                         <strong style="color: #e74c3c; font-size: 0.9rem; display: block; margin-bottom: 6px;">• 리스크 팩터</strong> 
@@ -1639,7 +1716,7 @@ function renderRomanticSection(selectedQue) {
 
             <div id="wheel-section" style="margin-top: 60px; padding: 40px 20px; background: #fffafb; border-radius: 30px; border: 1px solid #fce4ec; text-align: center;">
                 <div style="font-size: 0.75rem; color: #d63384; letter-spacing: 3px; font-weight: 800; margin-bottom: 10px; opacity: 0.6;">ENERGY RESONANCE</div>
-                <h3 style="font-size: 1.5rem; color: #4a0e1c; margin-bottom: 15px; font-family: 'Noto Serif KR', serif; font-weight: 800;">64기질 궁합 에너지 휠</h3>
+                <h3 style="font-size: 1.5rem; color: #001a3d; margin-bottom: 15px; font-family: 'Noto Serif KR', serif; font-weight: 800;">64기질 궁합 에너지 휠</h3>
                 <p style="font-size: 0.85rem; color: #666; margin-bottom: 25px;">보고 싶은 기질을 선택하여 64괘와의 조화를 확인하세요.</p>
 
                 <!-- 휠 코어 선택 버튼 컨테이너 -->
@@ -1663,7 +1740,7 @@ function renderRomanticSection(selectedQue) {
 
     reportHTML += `
     <div class="wheel-section" style="margin: 50px 0; text-align: center;">
-        <h3 style="font-size: 1.2rem; color: #800020; margin-bottom: 20px;">64괘 역동 에너지 휠</h3>
+        <h3 style="font-size: 1.2rem; color: #002D62; margin-bottom: 20px;">64괘 역동 에너지 휠</h3>
         <div id="wheel-canvas-container" style="width: 100%; max-width: 500px; margin: 0 auto; position: relative;">
             <canvas id="wheelCanvas" width="500" height="500" style="width: 100%; height: auto;"></canvas>
         </div>
@@ -1711,7 +1788,7 @@ function renderCareerSection(top3Trigrams) {
                     ${atomic.outer.description}
                 </p>
                 
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="display: gap: 10px; flex-wrap: wrap;">
                     <div style="background: #f4f6f9; padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; color: #1a2a6c; font-weight: 600; border: 1px solid #e0e6ed;">
                         # 태도: ${atomic.outer.attitude}
                     </div>
@@ -1926,7 +2003,7 @@ reportHTML += `</div>`;
         data: {
             labels: ['乾', '兌', '離', '震', '巽', '坎', '艮', '坤'],
             datasets: [
-                { label: 'Persona', data: Object.values(outerPcts), borderColor: '#800020', backgroundColor: 'rgba(128,0,32,0.1)', borderWidth: 3 },
+                { label: 'Persona', data: Object.values(outerPcts), borderColor: '#002D62', backgroundColor: 'rgba(0,45,98,0.1)', borderWidth: 3 },
                 { label: 'Essence', data: Object.values(innerPcts), borderColor: '#6A5ACD', backgroundColor: 'rgba(106,90,205,0.1)', borderWidth: 3 }
             ]
         },
@@ -2041,7 +2118,7 @@ function showWheelInfo(guaName, score) {
 
     infoBox.innerHTML = `
         <div style="background:#fff; padding:12px; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.1); border-bottom:4px solid ${statusColor};">
-            <div style="font-size:1.05rem; color:#800020; font-weight:800; margin-bottom:4px; word-break:keep-all;">
+            <div style="font-size:1.05rem; color:#002D62; font-weight:800; margin-bottom:4px; word-break:keep-all;">
                 ${targetGua.symbol} ${guaName} : ${targetNickname}
             </div>
             <div style="font-size:0.95rem; font-weight:700; color:${statusColor};">
