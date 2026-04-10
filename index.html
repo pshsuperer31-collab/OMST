@@ -14,6 +14,7 @@
     <script src="db7.js?v=2"></script>
     <script src="db8.js?v=2"></script>
     <script src="db9.js?v=2"></script>
+    <script src="personality_analyzer.js?v=1"></script>
     <style>
     :root { 
         --navy: #002D62; 
@@ -614,7 +615,9 @@ logo-area img {
     </p>
 </div>
 
-    <div class="container" id="main-container" style="display: none;"> <div id="quiz-ui">
+
+    <div class="container" id="main-container" style="display: none;"> 
+        <div id="quiz-ui">
             <div class="header" style="padding-top: 50px; margin-bottom: 40px; text-align: center;">
                 <img src="Omst_Logo_final.svg" alt="OMST Logo" style="width: 95%; max-width: 500px; height: auto; display: block; margin: 0 auto;">
                 <p style="margin: 15px 0 0 0; color: #546E7A; font-family: 'Arial', sans-serif; font-size: 0.95rem; letter-spacing: 4px; text-transform: uppercase; font-weight: 300;">
@@ -634,40 +637,12 @@ logo-area img {
         <div id="result-area" style="display:none;">
             <div class="header"></div>
             <div id="report-body"></div> 
+            
             <div style="text-align:center; margin-top:30px;">
                 <button onclick="location.reload()" style="padding:15px 40px; background:var(--navy); color:#fff; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1.1rem;">테스트 다시 하기</button>
             </div>
         </div>
     </div>
-    
-<div class="container" id="main-container" style="display: none;"> 
-    <div id="quiz-ui">
-    <div class="header" style="padding-top: 50px; margin-bottom: 40px; text-align: center;">
-        <img src="Omst_Logo_final.svg" alt="OMST Logo" style="width: 95%; max-width: 500px; height: auto; display: block; margin: 0 auto;">
-        
-        <p style="margin: 15px 0 0 0; color: #546E7A; font-family: 'Arial', sans-serif; font-size: 0.95rem; letter-spacing: 4px; text-transform: uppercase; font-weight: 300;">
-            Decode Your Innate Blueprint
-        </p>
-    </div>
-
-    <div class="progress-wrapper" style="margin: 20px 0 40px 0;">
-        <div class="progress-container">
-            <div class="progress-fill" id="progress-bar"></div>
-        </div>
-    </div>
-
-        <div id="q-container"></div>
-    </div>
-
-    <div id="result-area" style="display:none;">
-    <div class="header"></div>
-    <div id="report-body"></div> 
-    
-    <div style="text-align:center; margin-top:30px;">
-        <button onclick="location.reload()" style="padding:15px 40px; background:var(--navy); color:#fff; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1.1rem;">테스트 다시 하기</button>
-    </div>
-</div>
-</div>
 
 <script>
 
@@ -1108,7 +1083,10 @@ const findData = (db, a, b) => {
     <hr style="border: 0; height: 1px; background: linear-gradient(to right, transparent, #002D62, transparent); width: 60%; margin: 40px auto; opacity: 0.3;">
     `;
 
-        // 핵심 하이라이트 박스 (대표괘) - 디자인 강화
+    // [신규] MBTI & 애니어그램 심층 성격 상관분석 섹션 (메인 캐릭터 카드 이전 배치)
+    if (window.OMST_Analyzer && typeof window.OMST_Analyzer.renderSection === 'function') {
+        reportHTML += window.OMST_Analyzer.renderSection(outerPcts, innerPcts);
+    }
     reportHTML += `
     <div class="highlight-box" style="padding: 35px 25px; margin-bottom: 10px; text-align: center; background: #002D62; border-radius: 20px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,45,98,0.2);">
         <div style="position: absolute; top: -10px; right: -10px; font-size: 8rem; color: rgba(255,255,255,0.07); pointer-events: none; font-family: serif;">${d.symbol}</div>
@@ -2262,11 +2240,7 @@ function changeWheelCore(hexName, btnElement) {
     render64Wheel(hexName);
     
     // 안내 메시지 업데이트
-    const infoBox = document.getElementById('wheel-info');
-    if (infoBox) infoBox.innerText = `기준 기질이 [${hexName}] (으)로 변경되었습니다. 조각을 올려 궁합을 확인하세요.`;
 }
-
-window.onload = renderQuestion;
 </script>
 </body>
 </html>
