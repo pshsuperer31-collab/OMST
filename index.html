@@ -394,13 +394,14 @@ logo-area img {
 
     .chart-outer-wrap {
     width: 92% !important; 
-    max-width: 480px; /* 너무 커서 부담스럽지 않게 조절 */
+    max-width: 480px;
     margin: 0 auto 50px auto;
+    display: block;
     padding: 25px; 
     background: #ffffff;
     border-radius: 24px;
     border: 1px solid #f0f0f0;
-    box-sizing: border-box; /* 패딩이 너비 안에 포함되게 함 */
+    box-sizing: border-box;
     box-shadow: 0 15px 35px rgba(0,0,0,0.03); 
     overflow: hidden; 
 }
@@ -14117,7 +14118,7 @@ window.DB10_MindMixing["간+태"] = {
     let reportHTML = "";
 
  // 1. 스타일 및 유틸리티 유지
-const pStyle = "line-height: 1.8; color: #444; word-break: keep-all; text-align: justify; margin-top: 10px;";
+const pStyle = "line-height: 1.8; color: #444; word-break: keep-all; text-align: left; margin-top: 10px;";
 const findData = (db, a, b) => {
     if (!db) return null;
     return db[a + "+" + b] || db[b + "+" + a] || null;
@@ -14132,10 +14133,12 @@ const findData = (db, a, b) => {
 
     // [차트 섹션] 안정감 있는 래퍼 적용
     reportHTML += `
-    <div class="chart-outer-wrap" style="margin: 0 auto 30px auto; display: block;">
+    <div style="text-align: center;">
+    <div class="chart-outer-wrap" style="margin: 0 auto 30px auto; display: inline-block; width: 92%; max-width: 480px;">
         <div style="height: 400px; position: relative;"> 
             <canvas id="energyChart"></canvas>
         </div>
+    </div>
     </div>
 
     <!-- [신규] 상위 기질 통계 섹션 (바 차트) -->
@@ -14990,7 +14993,231 @@ function renderCareerSection(top3Trigrams) {
 
         const theme = { primary: "#2d5a27", secondary: "#8b4513", bg: "#fdfaf5", accent: "#e9f0e8" };
 
+        // ── 에너지 불일치 지수 (마음처방전 바로 위) ──────────────────
+        (function() {
+            // [Master Data] 224가지 역동성 가중치 테이블
+            const OMST_DYNAMIC_WEIGHTS = {
+                "건+태": { "곤": 0.6, "간": 0.6, "감": 0.7, "건": 0.8, "태": 0.8, "진": 1.2, "손": 1.2, "리": 1.5 },
+                "진+손": { "감": 0.6, "리": 0.7, "진": 0.8, "손": 0.8, "곤": 1.1, "간": 1.1, "건": 1.4, "태": 1.4 },
+                "곤+간": { "리": 0.6, "건": 0.7, "태": 0.7, "곤": 0.8, "간": 0.8, "감": 1.1, "진": 1.3, "손": 1.3 },
+                "감+리": { "진": 0.6, "손": 0.6, "감": 0.9, "리": 0.9, "곤": 1.1, "간": 1.1, "건": 1.4, "태": 1.4 },
+                "리+건": { "곤": 0.6, "간": 0.6, "리": 0.9, "건": 0.9, "감": 1.2, "진": 1.4, "손": 1.4, "태": 1.1 },
+                "리+태": { "곤": 0.6, "간": 0.6, "리": 0.9, "태": 0.9, "감": 1.2, "진": 1.4, "손": 1.4, "건": 1.1 },
+                "건+진": { "감": 0.6, "곤": 1.1, "간": 1.1, "건": 0.9, "진": 0.9, "리": 1.3, "태": 1.1, "손": 1.2 },
+                "건+손": { "감": 0.6, "곤": 1.1, "간": 1.1, "건": 0.9, "손": 0.9, "리": 1.3, "태": 1.1, "진": 1.2 },
+                "태+진": { "감": 0.6, "곤": 1.1, "간": 1.1, "태": 0.9, "진": 0.9, "리": 1.3, "건": 1.1, "손": 1.2 },
+                "태+손": { "감": 0.6, "곤": 1.1, "간": 1.1, "태": 0.9, "손": 0.9, "리": 1.3, "건": 1.1, "진": 1.2 },
+                "진+곤": { "리": 0.6, "감": 1.1, "건": 1.3, "태": 1.3, "진": 0.9, "곤": 0.9, "간": 1.0, "손": 1.1 },
+                "진+간": { "리": 0.6, "감": 1.1, "건": 1.3, "태": 1.3, "진": 0.9, "간": 0.9, "곤": 1.0, "손": 1.1 },
+                "손+곤": { "리": 0.6, "감": 1.1, "건": 1.3, "태": 1.3, "손": 0.9, "곤": 0.9, "간": 1.0, "진": 1.1 },
+                "손+간": { "리": 0.6, "감": 1.1, "건": 1.3, "태": 1.3, "손": 0.9, "간": 0.9, "곤": 1.0, "진": 1.1 },
+                "곤+감": { "건": 0.6, "태": 0.6, "리": 1.2, "진": 1.4, "손": 1.4, "곤": 0.9, "감": 0.9, "간": 1.0 },
+                "간+감": { "건": 0.6, "태": 0.6, "리": 1.2, "진": 1.4, "손": 1.4, "간": 0.9, "감": 0.9, "곤": 1.0 },
+                "건+감": { "곤": 0.6, "간": 0.6, "건": 0.8, "감": 0.8, "태": 0.9, "리": 1.3, "진": 1.2, "손": 1.2 },
+                "태+감": { "곤": 0.6, "간": 0.6, "태": 0.8, "감": 0.8, "건": 0.9, "리": 1.3, "진": 1.2, "손": 1.2 },
+                "감+진": { "건": 0.7, "태": 0.7, "감": 0.8, "진": 0.8, "손": 0.9, "리": 0.7, "곤": 1.2, "간": 1.2 },
+                "감+손": { "건": 0.7, "태": 0.7, "감": 0.8, "손": 0.8, "진": 0.9, "리": 0.7, "곤": 1.2, "간": 1.2 },
+                "리+곤": { "진": 0.7, "손": 0.7, "리": 0.8, "곤": 0.8, "간": 0.9, "건": 0.7, "감": 1.4, "태": 0.9 },
+                "리+간": { "진": 0.7, "손": 0.7, "리": 0.8, "간": 0.8, "곤": 0.9, "건": 0.7, "감": 1.4, "태": 0.9 },
+                "곤+건": { "리": 0.7, "곤": 0.8, "건": 0.8, "간": 0.9, "태": 0.9, "감": 0.7, "진": 1.4, "손": 1.4 },
+                "곤+태": { "리": 0.7, "곤": 0.8, "태": 0.8, "간": 0.9, "건": 0.9, "감": 0.7, "진": 1.4, "손": 1.4 },
+                "간+건": { "리": 0.7, "간": 0.8, "건": 0.8, "곤": 0.9, "태": 0.9, "감": 0.7, "진": 1.4, "손": 1.4 },
+                "간+태": { "리": 0.7, "간": 0.8, "태": 0.8, "곤": 0.9, "건": 0.9, "감": 0.7, "진": 1.4, "손": 1.4 },
+                "진+리": { "감": 0.6, "진": 0.8, "리": 0.8, "손": 0.9, "곤": 0.7, "간": 0.7, "건": 1.4, "태": 1.4 },
+                "손+리": { "감": 0.6, "손": 0.8, "리": 0.8, "진": 0.9, "곤": 0.7, "간": 0.7, "건": 1.4, "태": 1.4 }
+            };
+
+            // sO, sI → {name, score} 변환
+            const sortedO = sO.map(([name, score]) => ({ name, score }));
+            const sortedI = sI.map(([name, score]) => ({ name, score }));
+
+            // ── 가중치 헬퍼: 두 괘 조합의 역동성 가중치 조회
+            const getDynWeight = (nameA, nameB, targetName) => {
+                const key = `${nameA}+${nameB}`;
+                const keyAlt = `${nameB}+${nameA}`;
+                const row = OMST_DYNAMIC_WEIGHTS[key] || OMST_DYNAMIC_WEIGHTS[keyAlt];
+                return row ? (row[targetName] || 1.0) : 1.0;
+            };
+
+            // ── 점수 비율 계산 (상위 2개 기준 정규화)
+            const oTotal = sortedO[0].score + (sortedO[1]?.score || 0);
+            const iTotal = sortedI[0].score + (sortedI[1]?.score || 0);
+
+            const oW1 = sortedO[0].score / oTotal;          // 상괘 1위 비율
+            const oW2 = (sortedO[1]?.score || 0) / oTotal;  // 상괘 2위 비율
+            const iW1 = sortedI[0].score / iTotal;           // 하괘 1위 비율
+            const iW2 = (sortedI[1]?.score || 0) / iTotal;  // 하괘 2위 비율
+
+            const oName1 = sortedO[0].name;
+            const oName2 = sortedO[1]?.name || oName1;
+            const iName1 = sortedI[0].name;
+            const iName2 = sortedI[1]?.name || iName1;
+
+            // 1. 상하 비트 불일치 (기본 베이스 20점)
+            // 4가지 조합 비트차이를 가중 평균
+            let totalScore = 0;
+            const getBitDiff = (oN, iN) => {
+                const oc = window.trigramInfo[oN] || "000";
+                const ic = window.trigramInfo[iN] || "000";
+                let d = 0;
+                for (let i = 0; i < 3; i++) if (oc[i] !== ic[i]) d++;
+                return d;
+            };
+            const bitAvg = (getBitDiff(oName1, iName1) * oW1 * iW1)
+                         + (getBitDiff(oName1, iName2) * oW1 * iW2)
+                         + (getBitDiff(oName2, iName1) * oW2 * iW1)
+                         + (getBitDiff(oName2, iName2) * oW2 * iW2);
+            totalScore += (bitAvg / 3) * 20;
+
+            // 2. 상괘 경합도 + 가중 평균 역동성 가중치 (Max 40점)
+            let tensionO = 5;
+            if (sortedO.length > 1) {
+                const gapO = sortedO[0].score - sortedO[1].score;
+                tensionO = Math.max(5, 40 - (gapO * 8.75));
+
+                // 하괘가 1개면 단순, 2개면 가중 평균
+                const wO = (iW1 * getDynWeight(oName1, oName2, iName1))
+                         + (iW2 * getDynWeight(oName1, oName2, iName2));
+                tensionO *= wO;
+            }
+            totalScore += tensionO;
+
+            // 3. 하괘 경합도 + 가중 평균 역동성 가중치 (Max 40점)
+            let tensionI = 5;
+            if (sortedI.length > 1) {
+                const gapI = sortedI[0].score - sortedI[1].score;
+                tensionI = Math.max(5, 40 - (gapI * 8.75));
+
+                // 상괘가 1개면 단순, 2개면 가중 평균
+                const wI = (oW1 * getDynWeight(iName1, iName2, oName1))
+                         + (oW2 * getDynWeight(iName1, iName2, oName2));
+                tensionI *= wI;
+            }
+            totalScore += tensionI;
+
+            // 4. 최종 결과 (12% ~ 98%)
+            // 조화도 지수 = 100 - 불일치 지수 (높을수록 좋음)
+            const harmonyRate = 100 - Math.round(Math.min(Math.max(totalScore, 12), 98));
+
+            let statusText, statusColor, statusDesc;
+            if (harmonyRate >= 80) {
+                statusText = "✨ 완벽한 조화";
+                statusColor = "#1a8fe3";
+                statusDesc = "<strong>겉과 속이 거의 일치하는 이상적인 상태입니다.</strong> 사회적 역할과 본연의 기질이 자연스럽게 맞물려 에너지 소모 없이 본연의 힘을 발휘하고 있습니다. 지금 이 흐름을 유지하는 것 자체가 최고의 수행입니다.";
+            } else if (harmonyRate >= 65) {
+                statusText = "🌿 안정적 조화";
+                statusColor = "#27ae60";
+                statusDesc = "<strong>대체로 안정적인 에너지 흐름을 유지하고 있습니다.</strong> 약간의 간극이 존재하지만, 일상에서 크게 체감하지 못할 수준입니다. 자신을 온전히 드러낼 수 있는 소수의 관계를 잘 가꾸어 가세요.";
+            } else if (harmonyRate >= 50) {
+                statusText = "⚖️ 보통 — 조율 중";
+                statusColor = "#e6a817";
+                statusDesc = "<strong>겉과 속 사이에 조율이 필요한 상태입니다.</strong> 사회적 역할을 수행하면서 내면의 욕구와 충돌을 느끼는 순간들이 있을 수 있습니다. 의도적으로 혼자만의 회복 시간을 확보하는 것이 중요합니다.";
+            } else if (harmonyRate >= 35) {
+                statusText = "⚠️ 에너지 누수 중";
+                statusColor = "#E67E22";
+                statusDesc = "<strong>상당한 에너지 소모가 감지되는 상태입니다.</strong> 보여지는 모습과 본연의 자신 사이의 간극이 피로감으로 이어지고 있습니다. 지금 당신이 '억지로' 하고 있는 역할이 무엇인지 점검해볼 필요가 있습니다.";
+            } else {
+                statusText = "🔴 심각한 에너지 소모";
+                statusColor = "#E74C3C";
+                statusDesc = "<strong>겉과 속의 괴리가 매우 큰 상태입니다.</strong> 사회적 역할과 본연의 모습 사이의 간극이 깊어, 만성적인 피로와 정체성 혼란으로 이어질 수 있습니다. 자신을 있는 그대로 드러낼 수 있는 공간과 관계가 절실히 필요한 상태입니다.";
+            }
+
+            // 두 축: 높을수록 좋은 방향으로 전환
+            // 페르소나 활력도 = 상괘 경합 낮을수록 높음
+            // 본연성 안정도  = 하괘 경합 낮을수록 높음
+            const personaVitality  = Math.min(100, Math.round((1 - tensionO / 60) * 100));
+            const essenceStability = Math.min(100, Math.round((1 - tensionI / 60) * 100));
+
+            // 경합 여부에 따른 레이블 처리
+            const oLabel = (oName1 !== oName2) ? `${oName1} ↔ ${oName2}` : oName1;
+            const iLabel = (iName1 !== iName2) ? `${iName1} ↔ ${iName2}` : iName1;
+
+            // 해시태그 (5단계 기준)
+            const tags = [];
+            if (harmonyRate >= 80)              tags.push({ text: '#에너지_선순환_중',       bg: '#f6ffed', color: '#389e0d', border: '#b7eb8f' });
+            if (harmonyRate >= 65 && harmonyRate < 80) tags.push({ text: '#안정적_자기표현',  bg: '#e6f7ff', color: '#0969da', border: '#91d5ff' });
+            if (personaVitality < 45)           tags.push({ text: '#사회적_결정장애',        bg: '#fff7e6', color: '#d46b08', border: '#ffd591' });
+            if (essenceStability < 45)          tags.push({ text: '#내적_정체성_혼란',       bg: '#eef2ff', color: '#002D62', border: '#c7d2fe' });
+            if (bitAvg > 1.5)                   tags.push({ text: '#겉과속의_심각한_분리',  bg: '#fff1f0', color: '#cf1322', border: '#ffa39e' });
+
             reportHTML += `
+            <div class="report-section" style="margin-top: 40px; padding: 35px 30px; background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.04);">
+
+                <!-- 헤더 -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 10px;">
+                    <div style="font-weight: 800; color: #1e293b; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1.3rem;">🔮</span>
+                        복합 에너지 조화도 지수
+                        <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 500; letter-spacing: 1px;">OMST™ HARMONY INDEX</span>
+                    </div>
+                    <span style="padding: 6px 18px; border-radius: 50px; font-size: 0.82rem; font-weight: 800; color: #fff; background: ${statusColor}; white-space: nowrap; letter-spacing: 0.5px;">${statusText}</span>
+                </div>
+
+                <!-- 메인 게이지 (왼쪽=낮음/주의, 오른쪽=높음/조화) -->
+                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 10px;">
+                    <div style="text-align: center; min-width: 48px;">
+                        <span style="font-size: 1.4rem;">😟</span>
+                        <div style="font-size: 0.6rem; color: #E74C3C; font-weight: 700; margin-top: 3px;">주의</div>
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <div style="width:100%; height:16px; background:#f1f5f9; border-radius:10px; overflow:hidden;">
+                            <div style="width:${harmonyRate}%; height:100%; background: linear-gradient(90deg, #E74C3C, #E67E22, #3498DB); border-radius:10px;"></div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; min-width: 48px;">
+                        <span style="font-size: 1.4rem;">😊</span>
+                        <div style="font-size: 0.6rem; color: #3498DB; font-weight: 700; margin-top: 3px;">조화</div>
+                    </div>
+                </div>
+
+                <!-- 수치 -->
+                <div style="text-align: center; margin-bottom: 28px;">
+                    <span style="font-size: 3rem; font-weight: 900; letter-spacing: -2px; color: #1e293b;">${harmonyRate}</span>
+                    <span style="font-size: 1.4rem; font-weight: 800; color: ${statusColor};">%</span>
+                </div>
+
+                <!-- 두 축 카드 -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;">
+                    <div style="background: #fafbff; padding: 18px; border-radius: 16px; border: 1px solid #e8edf5;">
+                        <div style="font-size: 0.75rem; color: #002D62; font-weight: 800; margin-bottom: 10px; letter-spacing: 0.5px;">🎭 페르소나 활력도</div>
+                        <div style="width:100%; height:8px; background:#e8edf5; border-radius:6px; overflow:hidden; margin-bottom:8px;">
+                            <div style="width:${personaVitality}%; height:100%; background: linear-gradient(90deg, #6A5ACD, #002D62); border-radius:6px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <span style="font-size: 1.2rem; font-weight: 900; color: #002D62;">${personaVitality}<span style="font-size: 0.75rem; font-weight: 500;">/100</span></span>
+                            <span style="font-size: 0.7rem; color: #94a3b8;">상괘 ${oLabel}</span>
+                        </div>
+                    </div>
+                    <div style="background: #fafbff; padding: 18px; border-radius: 16px; border: 1px solid #e8edf5;">
+                        <div style="font-size: 0.75rem; color: #2d5a27; font-weight: 800; margin-bottom: 10px; letter-spacing: 0.5px;">🌳 본연성 안정도</div>
+                        <div style="width:100%; height:8px; background:#e8f0e8; border-radius:6px; overflow:hidden; margin-bottom:8px;">
+                            <div style="width:${essenceStability}%; height:100%; background: linear-gradient(90deg, #E67E22, #2d5a27); border-radius:6px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <span style="font-size: 1.2rem; font-weight: 900; color: #2d5a27;">${essenceStability}<span style="font-size: 0.75rem; font-weight: 500;">/100</span></span>
+                            <span style="font-size: 0.7rem; color: #94a3b8;">하괘 ${iLabel}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 설명 박스 -->
+                <div style="background: #f8fafc; padding: 20px 24px; border-radius: 16px; border-left: 5px solid ${statusColor}; margin-bottom: 20px;">
+                    <p style="margin: 0; font-size: 0.95rem; line-height: 1.85; color: #334155; word-break: keep-all;">
+                        ${statusDesc}
+                    </p>
+                </div>
+
+                <!-- 해시태그 -->
+                ${tags.length > 0 ? `
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                    ${tags.map(t => `<span style="background:${t.bg}; color:${t.color}; padding:5px 12px; border-radius:10px; font-size:0.78rem; font-weight:700; border:1px solid ${t.border};">${t.text}</span>`).join('')}
+                </div>` : ''}
+
+            </div>
+            `;
+        })();
+
+        reportHTML += `
                 <div class="report-section" style="margin-top: 80px; padding: 50px 20px; background-color: ${theme.bg}; border-radius: 40px; border: 1px solid #eef0ea;">
                     <div style="text-align: center; margin-bottom: 50px;">
                         <div style="font-size: 0.85rem; color: ${theme.primary}; letter-spacing: 6px; font-weight: 700; margin-bottom: 15px; opacity: 0.8;">INTERNAL RESONANCE</div>
