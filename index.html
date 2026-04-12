@@ -1819,21 +1819,32 @@ function renderRomanticSection(selectedQue) {
 
     return html;
 }
-   /**
- * [8] 커리어 및 재물 운용 전략 섹션 렌더링 (DB8_Atomic 연동형)
+/**
+ * [8] 커리어 및 재물 운용 전략 섹션 렌더링
+ * 원장님, 경로를 더 안전하게 뚫어놓았습니다!
  */
 function renderCareerSection(top3Trigrams) {
-    const atomic = getAtomicData(top3Trigrams, window.DB8_Atomic);
+    // 1. 키 조합 생성
+    const combinationKey = Array.isArray(top3Trigrams) 
+        ? `${top3Trigrams[0]}+${top3Trigrams[1]}` 
+        : top3Trigrams;
+
+    const mixingData = window.DB8_Mixing ? window.DB8_Mixing[combinationKey] : null;
     
-    if (!atomic) {
-        console.warn(`[Career Lookup Failed] 커리어 데이터 매칭 실패: ${top3Trigrams}`);
-        return `<div style="padding: 40px; margin-top: 60px; text-align: center; color: #1a2a6c; background: #f8faff; border: 2px dashed #d1dcf5; border-radius: 20px;">
-                    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">💼 커리어 전략 분석 중...</div>
-                    <div style="font-size: 0.9rem; color: #666;">
-                        현재 귀하의 고유 진동수 조합(<strong>${top3Trigrams.join(' + ')}</strong>)에 최적화된<br>커리어 및 재물 운용 데이터를 원장님께서 정밀하게 구성하고 계십니다!
-                    </div>
+    // 데이터가 아예 없는 경우 가이드 출력
+    if (!mixingData) {
+        console.warn(`[Career Lookup Failed] 매칭 실패: ${combinationKey}`);
+        return `<div style="padding:40px; margin-top:60px; text-align:center; background:#f8faff; border:2px dashed #d1dcf5; border-radius:20px;">
+                    데이터를 구성 중입니다 (${combinationKey})
                 </div>`;
     }
+
+    // 2. 안전한 변수 추출 (데이터 구조 불일치 대비)
+    const outerWork = mixingData.outer?.work_style || {};
+    const outerPath = mixingData.outer?.career_path || {};
+    const innerMoney = mixingData.inner?.money_instinct || {};
+    const innerAsset = mixingData.inner?.asset_strategy || {};
+    const innerPeace = mixingData.inner?.inner_peace || {};
 
     return `
         <div class="report-section" style="margin-top: 60px; border-top: 2px solid #d1dcf5; padding-top: 40px;">
@@ -1852,18 +1863,15 @@ function renderCareerSection(top3Trigrams) {
                     <span style="font-size: 1.2rem;">💼</span> 직업적 페르소나와 사회적 역할
                 </div>
                 <h4 style="font-size: 1.4rem; color: #1a1a1a; margin-bottom: 15px; font-family: 'Noto Serif KR', serif; font-weight: 800;">
-                    "${atomic.outer.mask}"
+                    "${outerWork.core || '준비된 전문가'}"
                 </h4>
                 <p style="font-size: 1.05rem; line-height: 1.85; color: #444; margin-bottom: 20px; word-break: keep-all;">
-                    ${atomic.outer.description}
+                    ${outerWork.description || ''}
                 </p>
                 
-                <div style="display: gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <div style="background: #f4f6f9; padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; color: #1a2a6c; font-weight: 600; border: 1px solid #e0e6ed;">
-                        # 태도: ${atomic.outer.attitude}
-                    </div>
-                    <div style="background: #fdfdfd; padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; color: #1a2a6c; font-weight: 600; border: 1px solid #eee;">
-                        ⚡ 기질: ${atomic.outer.mbti}
+                        # 추천분야: ${Array.isArray(outerPath.fields) ? outerPath.fields.join(', ') : '전문직'}
                     </div>
                 </div>
             </div>
@@ -1873,31 +1881,33 @@ function renderCareerSection(top3Trigrams) {
                     <span style="font-size: 1.3rem;">💰</span> 심층적 동기와 자산 관리
                 </div>
                 <p style="font-size: 1.05rem; line-height: 1.85; color: #444; margin-bottom: 25px; word-break: keep-all;">
-                    당신의 내면에는 <strong>${atomic.inner.drive}</strong>(이)라는 동력이 자리 잡고 있습니다. 
+                    당신의 내면에는 <strong>${innerMoney.core || '안정적 성장'}</strong>(이)라는 동력이 자리 잡고 있습니다. 
+                    <br><br>
+                    ${innerMoney.description || ''}
                 </p>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div style="padding: 18px; background: #fffdf5; border: 1px solid #f0e1b9; border-radius: 12px;">
                         <span style="font-size: 0.85rem; color: #856404; font-weight: bold; display: block; margin-bottom: 8px;">• 최적 자산</span>
-                        <div style="font-size: 1rem; color: #1a1a1a; font-weight: 800; line-height: 1.4;">
-                            ${atomic.inner.asset}
+                        <div style="font-size: 0.9rem; color: #1a1a1a; font-weight: 800; line-height: 1.4;">
+                            ${Array.isArray(innerAsset.targets) ? innerAsset.targets.join(', ') : '우량 자산'}
                         </div>
                     </div>
                     <div style="padding: 18px; background: #f8faff; border: 1px solid #d1dcf5; border-radius: 12px;">
-                        <span style="font-size: 0.85rem; color: #1a2a6c; font-weight: bold; display: block; margin-bottom: 8px;">• 재물 가치</span>
-                        <div style="font-size: 1rem; color: #1a1a1a; font-weight: 800; line-height: 1.4;">
-                            ${atomic.inner.desire}
+                        <span style="font-size: 0.85rem; color: #1a2a6c; font-weight: bold; display: block; margin-bottom: 8px;">• 투자 방법</span>
+                        <div style="font-size: 0.9rem; color: #1a1a1a; font-weight: 800; line-height: 1.4;">
+                            ${innerAsset.method || '장기 투자'}
                         </div>
                     </div>
                 </div>
             </div>
 
             <div style="margin: 40px 0; padding: 30px; border: 1px solid #eee; border-radius: 20px; text-align: center; background: #fdfdfd;">
-                <p style="font-size: 1.15rem; color: #1a2a6c; line-height: 1.9; margin: 0; word-break: keep-all;">
-                    <span style="display: block; color: #b8860b; font-weight: 800; margin-bottom: 10px; font-size: 0.95rem;">🎯 핵심 재물 조언</span>
-                    ${atomic.inner.description}<br>
-                    <span style="display: block; margin-top: 15px; font-size: 1.15rem; font-weight: 800; color: #0d1b3e;">
-                        "당신은 <span style="color:#b8860b; border-bottom: 2px solid #f0e1b9;">${atomic.inner.risk}</span>(이)라는<br>심리적 변수만 통제한다면 부의 자유를 누릴 상입니다."
+                <p style="font-size: 1.1rem; color: #1a2a6c; line-height: 1.9; margin: 0; word-break: keep-all;">
+                    <span style="display: block; color: #b8860b; font-weight: 800; margin-bottom: 10px; font-size: 0.95rem;">🎯 성장 및 리스크 관리</span>
+                    ${innerPeace.description || ''}<br>
+                    <span style="display: block; margin-top: 15px; font-size: 1.1rem; font-weight: 800; color: #0d1b3e;">
+                        "당신은 <span style="color:#b8860b; border-bottom: 2px solid #f0e1b9;">${innerMoney.risk || '충동적 결정'}</span>(이)라는<br>심리적 변수만 통제한다면 부의 자유를 누릴 상입니다."
                     </span>
                 </p>
             </div>
