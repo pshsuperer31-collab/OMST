@@ -14,6 +14,7 @@
     <script src="db7.js?v=2"></script>
     <script src="db8.js?v=2"></script>
     <script src="db9.js?v=2"></script>
+    <script src="db10.js?v=2"></script>
     <script src="personality_analyzer.js?v=1"></script>
     <style>
     :root { 
@@ -1917,90 +1918,112 @@ function renderCareerSection(top3Trigrams) {
     // [9] 커리어 및 재물 운용 전략 호출
     reportHTML += renderCareerSection(top3Trigrams);
 
-    const mindHealthKeywords = {
-    "건": {
-        physio: "과도한 긴장으로 인한 교감신경 우위 및 강박적 사고",
-        biochem: "코르티솔(스트레스 호르몬) 수치 과다 및 근육 긴장",
-        philosophy: "무소유(無所有): '가득 채우려 하면 엎질러지기 마련이다.' - 노자",
-        advice: "모든 것을 통제하려는 의지를 내려놓고, '비어 있음'의 여유를 가져보세요."
-    },
-    "태": {
-        physio: "말초적 자극에 민감한 자극추구형 및 도파민 과부하",
-        biochem: "도파민 수용체 과자극으로 인한 세로토닌 합성 저하",
-        philosophy: "지족(知足): '현재에 만족할 줄 아는 자가 진정한 부자다.' - 불교",
-        advice: "자극적인 외부 활동보다는 정적인 명상을 통해 내면의 세로토닌을 채워야 합니다."
-    },
-    "감": {
-        physio: "심부 기력 저하로 인한 신경계 침체 및 우울 경향",
-        biochem: "멜라토닌 불균형 및 의욕을 관장하는 노르에피네프린 부족",
-        philosophy: "조고각하(照顧脚下): '지금 이 순간, 당신의 발밑을 먼저 살피라.'",
-        advice: "깊은 수렁에 빠진 듯할 때는 멀리 보지 말고, 당장 눈앞의 작은 일부터 시작해 보세요."
-    },
-    "리": {
-        physio: "심화(心火) 상충으로 인한 감정 조절 장애 및 번아웃",
-        biochem: "아드레날린 과다 분비로 인한 심박수 증가 및 불면",
-        philosophy: "수승화강(水昇火降): '차가운 기운은 올리고, 뜨거운 기운은 내려라.'",
-        advice: "머리로 쏠린 열기를 식히기 위해 발을 따뜻하게 하고 침묵의 시간을 가져보세요."
-    },
-    "진": {
-        physio: "충동 제어의 어려움 및 주의산만한 ADHD적 경향",
-        biochem: "전두엽의 억제 기능 약화 및 급격한 감정 기복",
-        philosophy: "정중동(靜中動): '움직임 속에 고요함이 있어야 참된 움직임이다.'",
-        advice: "폭발적인 에너지를 건설적인 방향으로 분산시키고, 호흡을 고르는 연습이 필요합니다."
-    },
-    "손": {
-        physio: "결정 장애 및 주변 자극에 휩쓸리는 불안 장애",
-        biochem: "안정감을 주는 가바(GABA) 신경전달물질의 활성 저하",
-        philosophy: "부동심(不動心): '바람에 흔들리지 않는 뿌리 깊은 나무가 되라.'",
-        advice: "타인의 시선에서 벗어나 본인만의 '중심 잡기'를 위한 단호한 선언이 필요합니다."
-    },
-    "간": {
-        physio: "정체된 에너지로 인한 무기력증 및 회피성 성향",
-        biochem: "신진대사 저하 및 행복 호르몬인 엔도르핀 생성 둔화",
-        philosophy: "일체유심조(一切唯心造): '모든 고통과 멈춤은 마음이 만들어낸 장벽이다.'",
-        advice: "멈춰있는 산처럼 고립되지 마세요. 가벼운 산책이 마음의 정체를 뚫어줍니다."
-    },
-    "곤": {
-        physio: "과도한 배려로 인한 자기상실 및 만성 피로",
-        biochem: "옥시토신(사랑 호르몬) 과잉 의존으로 인한 의존성 불안",
-        philosophy: "무아(無我): '나를 비우는 과정에서 진정한 나를 발견하게 된다.'",
-        advice: "타인을 돌보기 전, 본인의 에너지를 먼저 충전하는 '건강한 이기심'이 필요합니다."
+// [10] 마음 처방전 섹션 (디자인 리뉴얼 및 실행 흐름 수정본)
+(function() {
+    window.DB10_MindAtomic = window.DB10_MindAtomic || {};
+    window.DB10_MindMixing = window.DB10_MindMixing || window.DB10_Mixing || {};
+
+    const symbolToName = { 
+        '☰': '건', '☱': '태', '☲': '리', '☳': '진', 
+        '☴': '손', '☵': '감', '☶': '간', '☷': '곤' 
+    };
+
+    const upperSym = d.symbol ? d.symbol.charAt(0) : "";
+    const lowerSym = d.symbol ? d.symbol.charAt(1) : upperSym;
+    const pureUpper = symbolToName[upperSym] || "건"; 
+    const pureLower = symbolToName[lowerSym] || pureUpper; 
+
+    let displayData = null;
+    if (pureUpper === pureLower) {
+        displayData = window.DB10_MindAtomic[pureUpper] || null;
+    } else {
+        const mKey = `${pureUpper}+${pureLower}`;
+        const reverseKey = `${pureLower}+${pureUpper}`;
+        displayData = window.DB10_MindMixing[mKey] || window.DB10_MindMixing[reverseKey] || null;
     }
-};
 
-// 수검자의 메인 기질(fO)에 따른 마음 건강 분석 추출
-const mindData = mindHealthKeywords[fO] || mindHealthKeywords["건"];
+    // 🚨 중요: 여기서 return;을 해버리면 showResult 함수 전체가 죽습니다. 
+    // 따라서 전체를 if(displayData)로 감싸서 데이터가 있을 때만 HTML을 더하게 합니다.
+    if (displayData) {
+        const theme = {
+            primary: "#2d5a27", 
+            secondary: "#8b4513", 
+            bg: "#fdfaf5",      
+            accent: "#e9f0e8"   
+        };
 
-reportHTML += `
-<div class="report-section" style="margin-top: 40px; padding: 40px 30px; background: #f8faff; border-radius: 25px; border: 1px solid #e0e6ed; box-shadow: inset 0 0 20px rgba(74, 144, 226, 0.05);">
-    
-    <div class="section-title" style="margin-bottom: 35px; text-align: center; color: #2c3e50; font-weight: 900;">
-        <div style="font-size: 2rem; margin-bottom: 10px;">🧘</div>
-        <div style="font-size: 1.6rem; letter-spacing: -0.5px;">OMST™ 마음 건강 처방전</div>
-        <div style="width: 50px; height: 3px; background: #4a90e2; margin: 15px auto 0;"></div>
-    </div>
+        reportHTML += `
+            <div class="report-section" style="margin-top: 80px; padding: 50px 20px; background-color: ${theme.bg}; border-radius: 40px; border: 1px solid #eef0ea;">
+                <div style="text-align: center; margin-bottom: 50px;">
+                    <div style="font-size: 0.85rem; color: ${theme.primary}; letter-spacing: 6px; font-weight: 700; margin-bottom: 15px; opacity: 0.8;">INTERNAL RESONANCE</div>
+                    <h3 style="font-size: 2rem; color: #1a1a1a; margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 800; letter-spacing: -1px;">OMST™ 마음 건강 처방전</h3>
+                    <div style="width: 40px; height: 2px; background: ${theme.primary}; margin: 20px auto; opacity: 0.3;"></div>
+                    <p style="font-size: 1rem; color: #555; line-height: 1.8; font-family: 'Noto Sans KR', sans-serif;">
+                        타고난 기질적 에너지가 빚어내는 심리적 무늬를 읽습니다.<br>
+                        몸의 증상을 통해 마음의 불균형을 살피는 치유의 지침입니다.
+                    </p>
+                </div>
 
-    <div style="margin-bottom: 30px; padding: 0 10px;">
-        <div style="font-weight: 800; color: #4a90e2; margin-bottom: 12px; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 1.4rem;">🧬</span> 생리학적 관찰
-        </div>
-        <p style="font-size: 1.05rem; color: #444; line-height: 1.8; margin: 0; word-break: keep-all;">
-            현재 귀하의 기질은 <span style="font-weight: 700; color: #2c3e50;">${mindData.physio}</span> 상태에 노출되기 쉽습니다. 
-            특히 신경전달물질 측면에서 <span style="font-weight: 700; color: #d9534f;">${mindData.biochem}</span> 현상이 나타날 수 있으니 각별한 주의가 필요합니다.
-        </p>
-    </div>
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <div style="background: #fff; padding: 35px; border-radius: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(45,90,39,0.05); border: 1px solid #f0f2ed;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+                            <span style="background: ${theme.accent}; padding: 8px; border-radius: 10px; font-size: 1.2rem;">🌲</span>
+                            <span style="color: ${theme.primary}; font-weight: 800; font-size: 0.95rem; letter-spacing: 1px;">외적 페르소나와 사회적 긴장</span>
+                        </div>
+                        <h4 style="font-size: 1.4rem; color: #1a1a1a; margin-bottom: 20px; font-family: 'Noto Serif KR', serif; word-break: keep-all; line-height: 1.4;">
+                            "${displayData.outer?.conflict || '심리적 균형 상태'}"
+                        </h4>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; color: #444; font-size: 0.95rem; line-height: 1.7;">
+                            <div style="padding-left: 15px; border-left: 2px solid ${theme.accent};">
+                                <strong style="color: #666;">[신체 신호]</strong> ${displayData.outer?.symptom || '특이사항 없음'}
+                            </div>
+                            <div style="padding-left: 15px; border-left: 2px solid ${theme.accent};">
+                                <strong style="color: #666;">[생리 기전]</strong> ${displayData.outer?.biochem || '안정적'}
+                            </div>
+                        </div>
+                        <div style="background: ${theme.accent}; padding: 22px; border-radius: 18px; color: ${theme.primary}; font-size: 1rem; line-height: 1.8; word-break: keep-all;">
+                            <strong style="display: block; margin-bottom: 8px; font-size: 0.9rem;">🌿 임상적 가이드라인:</strong>
+                            ${displayData.outer?.advice || '현재의 흐름을 유지하며 평온을 지키십시오.'}
+                        </div>
+                    </div>
 
-    <div style="background: #ffffff; padding: 30px; border-radius: 20px; border-left: 6px solid #4a90e2; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-        <div style="font-style: italic; color: #1a2a3a; margin-bottom: 15px; font-weight: 700; font-size: 1.2rem; line-height: 1.5; word-break: keep-all;">
-            "${mindData.philosophy}"
-        </div>
-        <p style="font-size: 1.05rem; color: #555; line-height: 1.9; margin: 0; word-break: keep-all;">
-            ${mindData.advice} <br>
-            <span style="color: #4a90e2; font-weight: 700;">몸과 마음의 조화</span>를 찾는 것이 오늘 귀하에게 가장 필요한 약입니다.
-        </p>
-    </div>
-</div>
-`;
+                    <div style="background: #fff; padding: 35px; border-radius: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(139,69,19,0.05); border: 1px solid #f5f2ed;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+                            <span style="background: #fdf5ed; padding: 8px; border-radius: 10px; font-size: 1.2rem;">🧘</span>
+                            <span style="color: ${theme.secondary}; font-weight: 800; font-size: 0.95rem; letter-spacing: 1px;">무의식적 본능과 내면의 갈등</span>
+                        </div>
+                        <h4 style="font-size: 1.4rem; color: #1a1a1a; margin-bottom: 20px; font-family: 'Noto Serif KR', serif; word-break: keep-all; line-height: 1.4;">
+                            "${displayData.inner?.conflict || '내면의 평온'}"
+                        </h4>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; color: #444; font-size: 0.95rem; line-height: 1.7;">
+                            <div style="padding-left: 15px; border-left: 2px solid #fdf5ed;">
+                                <strong style="color: #666;">[신체 신호]</strong> ${displayData.inner?.symptom || '특이사항 없음'}
+                            </div>
+                            <div style="padding-left: 15px; border-left: 2px solid #fdf5ed;">
+                                <strong style="color: #666;">[생리 기전]</strong> ${displayData.inner?.biochem || '안정적'}
+                            </div>
+                        </div>
+                        <div style="background: #fdf5ed; padding: 22px; border-radius: 18px; color: ${theme.secondary}; font-size: 1rem; line-height: 1.8; word-break: keep-all;">
+                            <strong style="display: block; margin-bottom: 8px; font-size: 0.9rem;">🌙 깊은 성찰을 위한 처방:</strong>
+                            ${displayData.inner?.advice || '자신의 내면을 부드럽게 관조하는 시간을 가지세요.'}
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <span style="color: ${theme.primary}; font-size: 2rem; display: block; margin-bottom: 15px;">"</span>
+                        <p style="font-family: 'Noto Serif KR', serif; font-size: 1.2rem; color: #222; line-height: 2; word-break: keep-all; font-style: italic; font-weight: 500;">
+                            ${displayData.outer?.philosophy || displayData.inner?.philosophy || '머무는 바 없이 그 마음을 낼지니라.'}
+                        </p>
+                        <span style="color: ${theme.primary}; font-size: 2rem; display: block; margin-top: 5px;">"</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        // 데이터가 없을 때도 하단 차트 로직이 안 깨지게 빈 placeholder만 살짝 더해줍니다.
+        reportHTML += `<div id="res-symbol" style="display:none;"></div><div id="res-hex-title" style="display:none;"></div><div id="res-binary" style="display:none;"></div>`;
+    }
+})();
 
 reportHTML += `
 <div class="final-essay" style="margin-top: 60px; padding: 50px 40px; background: #fff; text-align: center; line-height: 2; word-break: keep-all;">
