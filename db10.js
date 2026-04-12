@@ -1,3 +1,7 @@
+// db10.js 파일 최상단
+if (typeof window.DB10_MindAtomic === 'undefined') window.DB10_MindAtomic = {};
+if (typeof window.DB10_MindMixing === 'undefined') window.DB10_MindMixing = {};
+
 window.DB10_Atomic = window.DB10_Atomic || {};
 window.DB10_MindAtomic["건"] = {
   outer: { 
