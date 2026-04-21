@@ -13646,7 +13646,7 @@ window.DB10_MindMixing["간+태"] = {
     </h1>
 
     <p style="color: #555; font-size: 1.15rem; line-height: 1.9; word-break: keep-all; margin-bottom: 45px; font-weight: 400;">
-        고대 64괘의 지혜와 2,000건의 임상 데이터가<br>
+        고대 64괘의 지혜와 현대 정신 심리학이 만나<br>
         당신의 <strong style="color: #002D62; border-bottom: 2.5px solid #002D62; padding-bottom: 2px;">중용(中庸)</strong>과 마음의 평화를 향한 길을 안내합니다.
     </p>
 
@@ -13903,7 +13903,47 @@ window.DB10_MindMixing["간+태"] = {
 
     // 14. 소비 가치관 (건 vs 감)
     { type: "outer", trigram: "건", weight: 1.8, text: "비싸더라도 내 가치를 증명해 줄 수 있는 브랜드나 확실한 퀄리티의 물건에는 아낌없이 과감하게 투자한다." },
-    { type: "outer", trigram: "감", weight: 1.8, text: "물건을 살 때 최저가와 가성비를 극도로 따지며, 조금이라도 지출을 줄일 수 있는 쿠폰이나 적립금을 집요하게 찾는다." }
+    { type: "outer", trigram: "감", weight: 1.8, text: "물건을 살 때 최저가와 가성비를 극도로 따지며, 조금이라도 지출을 줄일 수 있는 쿠폰이나 적립금을 집요하게 찾는다." },
+
+    // ═══════════════════════════════════════════════════════════
+    // 15. [추가 20문항] 일상 친화형 - 균형 보강용
+    // ═══════════════════════════════════════════════════════════
+
+    // 15-1. 간(艮) 보강 — 안정·중심·지속
+    { type: "outer", trigram: "간", weight: 1.8, text: "병원 예약은 검진 기한이 다가올 때보다 훨씬 일찍 잡아두고, 같은 병원을 오래 다니는 편이다." },
+    { type: "outer", trigram: "간", weight: 1.8, text: "옷장의 오래된 옷도 '언젠가 입겠지' 하며 버리지 못하고, 10년 전 옷을 여전히 입는 편이다." },
+    { type: "inner", trigram: "간", weight: 1.5, text: "주말에 약속이 갑자기 취소되면, 허전하기보다는 오히려 내 페이스를 되찾을 수 있어 안도한다." },
+    { type: "inner", trigram: "간", weight: 1.5, text: "이사할 때 오래된 물건을 버리기보다, 내 삶의 흔적이 남은 것들을 최대한 챙겨가는 편이다." },
+
+    // 15-2. 손(巽) 보강 — 유연·조율·공감
+    { type: "outer", trigram: "손", weight: 1.8, text: "단톡방에서 의견이 엇갈릴 때, 양쪽 입장을 정리해주거나 부드럽게 말을 거는 역할을 맡게 된다." },
+    { type: "outer", trigram: "손", weight: 1.5, text: "처음 만난 사람과 대화할 때, 상대의 말투나 관심사를 빠르게 파악해 자연스럽게 화제를 맞추는 편이다." },
+    { type: "inner", trigram: "손", weight: 1.5, text: "친구가 괜찮다고 말해도, 표정만 보고 '실은 마음 상했구나'를 알아채는 편이다." },
+
+    // 15-3. 태(兌) 보강 — 표현·친화·기쁨
+    { type: "outer", trigram: "태", weight: 1.8, text: "카페에서 주문 실수가 있어도 웃으며 '괜찮아요, 바쁘시죠' 하며 분위기를 가볍게 넘기는 편이다." },
+    { type: "outer", trigram: "태", weight: 1.5, text: "맛있는 걸 먹거나 좋은 곳을 발견하면 SNS·카톡으로 반드시 누군가와 공유해야 직성이 풀린다." },
+    { type: "inner", trigram: "태", weight: 1.2, text: "친구 결혼식이나 생일 모임에서 누구보다 진심으로 들뜨며, 그 기운이 내게도 큰 활력이 된다." },
+
+    // 15-4. 곤(坤) 보강 — 수용·헌신
+    { type: "outer", trigram: "곤", weight: 1.5, text: "명절이나 가족 행사에서, 내가 돋보이는 자리보다 모두가 편안히 먹고 쉬도록 챙기는 역할이 자연스럽다." },
+    { type: "outer", trigram: "곤", weight: 1.5, text: "친구가 힘든 일로 전화하면 조언보다는 먼저 '많이 힘들었겠다'고 끝까지 들어주는 편이다." },
+
+    // 15-5. 리(離) 보강 — 명확·분석
+    { type: "inner", trigram: "리", weight: 1.5, text: "옷이나 소품을 살 때 브랜드·소재·원산지·리뷰까지 꼼꼼히 비교하지 않으면 결제 버튼을 못 누른다." },
+    { type: "outer", trigram: "리", weight: 1.2, text: "설명서나 약관의 작은 글씨까지 꼼꼼히 읽고, 헷갈리는 부분은 반드시 검색해서 확실히 해야 한다." },
+
+    // 15-6. 진(震) 보강 — 추진·즉행
+    { type: "inner", trigram: "진", weight: 1.5, text: "주말 계획이 비어있으면 답답해서, 전시·공연·새로 뜬 카페라도 뭐든 새 경험을 찾아 나선다." },
+    { type: "outer", trigram: "진", weight: 1.2, text: "새 가전을 사면 설명서를 꼼꼼히 읽기보다, 일단 버튼부터 눌러보며 기능을 익히는 편이다." },
+
+    // 15-7. 감(坎) 보강 — 사색·관찰
+    { type: "inner", trigram: "감", weight: 1.5, text: "버스나 지하철에서 대기 시간이 길어질 때, 다른 사람들과 달리 나는 그 시간을 혼자 조용히 생각 정리하는 시간으로 즐긴다." },
+    { type: "outer", trigram: "감", weight: 1.2, text: "사람 많은 모임에서 대화에 끼기보다, 한쪽에서 조용히 관찰하며 사람들의 관계나 심리를 읽는다." },
+
+    // 15-8. 건(乾) 보강 — 주도·책임
+    { type: "inner", trigram: "건", weight: 1.5, text: "학교나 회사에서 팀 과제가 주어지면, 리더가 정해지기 전에 내가 먼저 방향을 제시하곤 한다." },
+    { type: "outer", trigram: "건", weight: 1.2, text: "내 물건(가방·신발·전자기기)은 남이 관리하거나 손대는 것보다, 내가 직접 꼼꼼히 챙겨야 마음이 놓인다." }
 ];
 
     // 원본 데이터 보존을 위해 복사본([...])을 만들어 섞는 것이 안전합니다.
@@ -15803,7 +15843,7 @@ function changeWheelCore(hexName, btnElement) {
       html += '<span style="color:#B8924A;font-weight:700;">수용과 안정</span>, ';
       html += '<span style="color:#8B7355;font-weight:700;">결단과 원칙</span>, ';
       html += '<span style="color:#4A90E2;font-weight:700;">사색과 응축</span>.<br><br>';
-      html += '모든 괘는 각각의 저 다섯 가지 결을 지닙니다.<br>검사 결과 상의 데이터를 통해 <strong>상괘와 하괘가 만나 하나의 괘가 되듯, 합쳐져 어우러지는 에너지의 결</strong>은 아래 차트와 같습니다.';
+      html += '검사 결과 상의 데이터를 통해 <strong>상괘와 하괘가 만나 하나의 괘가 되듯</strong><br>합쳐져 어우러지는 에너지의 결은 아래 차트와 같습니다.';
       html += '</div>';
 
       html += '<div style="background: #fff; border: 1px solid #eee; border-radius: 18px; padding: 30px 24px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">';
