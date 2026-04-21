@@ -314,6 +314,11 @@ logo-area img {
         gap: 20px !important;
     }
 
+    /* 오행 상생상극 카드 - 모바일 1열 */
+    .wuxing-relation-grid {
+        grid-template-columns: 1fr !important;
+    }
+
     /* 1. 전체 컨테이너 여백 조정 */
     body, .container { 
         padding: 15px !important; 
@@ -14685,6 +14690,15 @@ const relationKeywords = {
 const outData = relationKeywords[fO] || relationKeywords["곤"]; 
 const inData = relationKeywords[fI] || relationKeywords["곤"];
 
+// ═══ 오행(五行) 지문 섹션 — 역동괘 분석 직후, 관계 솔루션 직전에 배치 ═══
+try {
+  if(typeof window.renderWuxingSection === 'function'){
+    reportHTML += window.renderWuxingSection(outerPcts, innerPcts, displayName);
+  }
+} catch(e){
+  console.warn('[오행섹션 호출 실패]', e.message);
+}
+
 // 3. HTML 섹션 생성 및 조합
 reportHTML += `
 <div class="report-section" style="margin-top: 40px; padding: 30px; background: #fff; border: 1px solid #eee; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
@@ -15612,6 +15626,243 @@ function changeWheelCore(hexName, btnElement) {
     
     // 안내 메시지 업데이트
 }
+
+// ═══════════════════════════════════════════════════════════
+// 🔮 오행(五行) 분석 섹션 - 전역 오염 없도록 IIFE로 격리
+// ═══════════════════════════════════════════════════════════
+(function(){
+  // 내부 전용 스코프
+  const WU_LIST = ['木','火','土','金','水'];
+  const WU_SHENG = {'木':'火','火':'土','土':'金','金':'水','水':'木'};
+  const WU_KE    = {'木':'土','土':'水','水':'火','火':'金','金':'木'};
+  const WU_CHAR = {
+    '木':{name:'나무(木)',trait:'성장과 추진',color:'#6B8E5A'},
+    '火':{name:'불(火)',trait:'표현과 정열',color:'#A63D40'},
+    '土':{name:'흙(土)',trait:'수용과 안정',color:'#B8924A'},
+    '金':{name:'결단과 원칙',trait:'결단과 원칙',color:'#8B7355'},
+    '水':{name:'물(水)',trait:'사색과 응축',color:'#4A90E2'},
+  };
+  // 정확한 이름 다시
+  WU_CHAR['金'] = {name:'쇠(金)',trait:'결단과 원칙',color:'#8B7355'};
+
+  // 8괘 → 5오행 (리/이 둘 다 지원)
+  const TRI_TO_WU = {
+    '건':'金','태':'金',
+    '리':'火','이':'火',
+    '진':'木','손':'木',
+    '감':'水',
+    '간':'土','곤':'土'
+  };
+
+  function toWuxingDist(outerPct, innerPct){
+    const wu = {'木':0,'火':0,'土':0,'金':0,'水':0};
+    if(outerPct && typeof outerPct === 'object'){
+      Object.keys(outerPct).forEach(t => {
+        const el = TRI_TO_WU[t];
+        if(el) wu[el] += (outerPct[t] || 0) * 0.5;
+      });
+    }
+    if(innerPct && typeof innerPct === 'object'){
+      Object.keys(innerPct).forEach(t => {
+        const el = TRI_TO_WU[t];
+        if(el) wu[el] += (innerPct[t] || 0) * 0.5;
+      });
+    }
+    return wu;
+  }
+
+  function wuPhrase(wu){
+    const total = WU_LIST.reduce((s,e)=>s+(wu[e]||0),0) || 1;
+    const norm = {};
+    WU_LIST.forEach(e => { norm[e] = ((wu[e]||0)/total)*100; });
+    const sorted = WU_LIST.map(e=>({e,pct:norm[e]})).sort((a,b)=>b.pct-a.pct);
+    const top1 = sorted[0], top2 = sorted[1];
+    // 이중 축 먼저
+    if(top1.pct >= 25 && top2.pct >= 25 && (top1.pct-top2.pct) < 8){
+      return {type:'이중 축', text:'<strong>'+WU_CHAR[top1.e].trait+'</strong>과 <strong>'+WU_CHAR[top2.e].trait+'</strong>의 두 결이 나란히 흐르는 기운'};
+    }
+    if(top1.pct >= 35){
+      return {type:'편중', text:'<strong>'+WU_CHAR[top1.e].trait+'</strong>의 결이 뚜렷하게 지배하는 기운'};
+    }
+    if(top1.pct >= 27){
+      return {type:'우세', text:'<strong>'+WU_CHAR[top1.e].trait+'</strong>의 결이 우세하게 흐르는 기운'};
+    }
+    const std = Math.sqrt(WU_LIST.reduce((s,e)=>s+Math.pow(norm[e]-20,2),0)/5);
+    if(std < 5 && top1.pct < 25){
+      return {type:'고른 순환', text:'다섯 가지 결이 <strong>고르게 순환</strong>하는 유연한 기운'};
+    }
+    return {type:'혼합', text:'<strong>'+WU_CHAR[top1.e].trait+'</strong>을 중심으로 여러 결이 섞인 기운'};
+  }
+
+  function pentagonSVG(wu, accent){
+    const w=380,h=360,cx=w/2,cy=h/2,rMax=110;
+    const total = WU_LIST.reduce((s,e)=>s+(wu[e]||0),0) || 1;
+    const axis = WU_LIST.map((el,i)=>{
+      const ang = (i*72-90)*Math.PI/180;
+      return {el,x:cx+rMax*Math.cos(ang),y:cy+rMax*Math.sin(ang),xL:cx+(rMax+24)*Math.cos(ang),yL:cy+(rMax+24)*Math.sin(ang)};
+    });
+    const data = WU_LIST.map((el,i)=>{
+      const pct = (wu[el]/total)*100;
+      const r = rMax * Math.min(pct/50, 1);
+      const ang = (i*72-90)*Math.PI/180;
+      return {x:cx+r*Math.cos(ang),y:cy+r*Math.sin(ang),pct};
+    });
+    let grids='';
+    [0.5,1.0].forEach((lvl,idx)=>{
+      const pts = axis.map(p=>(cx+(p.x-cx)*lvl)+','+(cy+(p.y-cy)*lvl)).join(' ');
+      grids += '<polygon points="'+pts+'" fill="none" stroke="#E8E2D5" stroke-width="'+(idx===1?1:0.8)+'" stroke-dasharray="'+(idx===1?'':'3 3')+'"/>';
+    });
+    let axes='';
+    axis.forEach(p=>{
+      axes += '<line x1="'+cx+'" y1="'+cy+'" x2="'+p.x+'" y2="'+p.y+'" stroke="#E8E2D5" stroke-width="0.8"/>';
+    });
+    const path = data.map(p=>p.x+','+p.y).join(' ');
+    let nodes='';
+    axis.forEach((p,i)=>{
+      const el = p.el, pct = data[i].pct, col = WU_CHAR[el].color;
+      const keyword = WU_CHAR[el].trait;
+      const ang = (i*72-90)*Math.PI/180;
+      const xKey = cx + (rMax+52)*Math.cos(ang);
+      const yKey = cy + (rMax+52)*Math.sin(ang);
+      nodes += '<circle cx="'+p.x+'" cy="'+p.y+'" r="16" fill="#fff" stroke="'+col+'" stroke-width="2"/>';
+      nodes += '<text x="'+p.x+'" y="'+(p.y+1)+'" text-anchor="middle" dominant-baseline="middle" font-family="serif" font-size="15" font-weight="bold" fill="'+col+'">'+el+'</text>';
+      nodes += '<text x="'+p.xL+'" y="'+p.yL+'" text-anchor="middle" dominant-baseline="middle" font-family="Noto Serif KR,serif" font-size="11" fill="#888" font-weight="600">'+pct.toFixed(0)+'%</text>';
+      nodes += '<text x="'+xKey+'" y="'+yKey+'" text-anchor="middle" dominant-baseline="middle" font-family="Noto Serif KR,serif" font-size="11" fill="'+col+'" font-weight="700">'+keyword+'</text>';
+      nodes += '<circle cx="'+data[i].x+'" cy="'+data[i].y+'" r="4" fill="'+accent+'" stroke="#fff" stroke-width="2"/>';
+    });
+    return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;max-width:380px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">'+grids+axes+'<polygon points="'+path+'" fill="'+accent+'" fill-opacity=".18" stroke="'+accent+'" stroke-width="2" stroke-linejoin="round"/>'+nodes+'</svg>';
+  }
+
+  const EL_TRAITS = {
+    '木':{
+      me:'성장과 추진',
+      summary:'뻗어나가고 새로 시작하는 에너지',
+      helped:'<strong>사색과 응축의 결</strong>이 깊이를 주어 성장의 뿌리를 단단히 합니다',
+      helps:'<strong>표현과 정열의 결</strong>을 불붙여 창조적 에너지를 살려줍니다',
+      drained:'<strong>결단과 원칙의 결</strong>이 강하게 작용하면 성장 의지가 꺾일 수 있습니다',
+      drains:'<strong>수용과 안정의 결</strong>을 흔들어 상대에게 부담을 줄 수 있습니다'
+    },
+    '火':{
+      me:'표현과 정열',
+      summary:'빛을 발하고 드러내는 에너지',
+      helped:'<strong>성장과 추진의 결</strong>이 연료가 되어 더 환하게 타오릅니다',
+      helps:'<strong>수용과 안정의 결</strong>에 따뜻함을 더해 결실을 맺게 합니다',
+      drained:'<strong>사색과 응축의 결</strong>이 강하면 열기가 식을 수 있습니다',
+      drains:'<strong>결단과 원칙의 결</strong>을 압박하여 상대를 지치게 할 수 있습니다'
+    },
+    '土':{
+      me:'수용과 안정',
+      summary:'품고 받아들이며 중심을 잡는 에너지',
+      helped:'<strong>표현과 정열의 결</strong>이 활력을 주어 더 든든한 토대가 됩니다',
+      helps:'<strong>결단과 원칙의 결</strong>에 무게를 실어 결실을 돕습니다',
+      drained:'<strong>성장과 추진의 결</strong>이 강하면 안정이 흔들릴 수 있습니다',
+      drains:'<strong>사색과 응축의 결</strong>을 막아 상대의 흐름을 끊을 수 있습니다'
+    },
+    '金':{
+      me:'결단과 원칙',
+      summary:'기준을 세우고 판단하는 에너지',
+      helped:'<strong>수용과 안정의 결</strong>이 뒷받침되어 결정에 무게가 실립니다',
+      helps:'<strong>사색과 응축의 결</strong>을 맑게 하여 깊이를 더해줍니다',
+      drained:'<strong>표현과 정열의 결</strong>이 강하면 원칙이 흔들릴 수 있습니다',
+      drains:'<strong>성장과 추진의 결</strong>을 억눌러 상대의 확장을 막을 수 있습니다'
+    },
+    '水':{
+      me:'사색과 응축',
+      summary:'깊이 생각하고 담아두는 에너지',
+      helped:'<strong>결단과 원칙의 결</strong>이 방향을 잡아주어 사색이 맑아집니다',
+      helps:'<strong>성장과 추진의 결</strong>에 영감을 주어 새로움을 키웁니다',
+      drained:'<strong>수용과 안정의 결</strong>이 강하면 흐름이 막힐 수 있습니다',
+      drains:'<strong>표현과 정열의 결</strong>을 식혀 상대의 열기를 눌러버릴 수 있습니다'
+    },
+  };
+
+  // 전역 public 함수 (window 네임스페이스 사용)
+  window.renderWuxingSection = function(outerPcts, innerPcts, displayName){
+    try {
+      const wu = toWuxingDist(outerPcts, innerPcts);
+      const sorted = WU_LIST.map(e=>({e,pct:(wu[e]||0)})).sort((a,b)=>b.pct-a.pct);
+      const top1 = sorted[0], top2 = sorted[1];
+      const phrase = wuPhrase(wu);
+      const trait = EL_TRAITS[top1.e];
+      const topEl = WU_CHAR[top1.e];
+      const name = displayName || '귀하';
+
+      let html = '';
+      html += '<div class="report-section" style="margin-top: 50px; padding: 0; background: transparent; border: none;">';
+      html += '<div style="text-align: center; margin-bottom: 30px;">';
+      html += '<div style="font-size: 0.8rem; color: #b8860b; letter-spacing: 4px; font-weight: 800; margin-bottom: 10px; opacity: 0.8;">FIVE ELEMENTS Analysis</div>';
+      html += '<h3 style="font-size: 1.8rem; color: #1a1a1a; margin: 0; font-family: \'Noto Serif KR\', serif; font-weight: 800;">' + name + '의 에너지 지문</h3>';
+      html += '<p style="font-size: 0.9rem; color: #888; margin: 10px 0 0 0;">상괘와 하괘가 합쳐져 드러나는 전체 에너지의 결</p>';
+      html += '</div>';
+
+      // 쉬운 설명 박스
+      html += '<div style="font-family: \'Noto Serif KR\', serif; font-size: 0.92rem; color: #444; line-height: 1.9; background: #fdfaf3; padding: 22px 26px; border-radius: 12px; border-left: 4px solid #d4af37; margin-bottom: 28px; word-break: keep-all;">';
+      html += '세상 만물의 에너지는 다섯 가지 결로 흐릅니다.<br>';
+      html += '<span style="color:#6B8E5A;font-weight:700;">성장과 추진</span>, ';
+      html += '<span style="color:#A63D40;font-weight:700;">표현과 정열</span>, ';
+      html += '<span style="color:#B8924A;font-weight:700;">수용과 안정</span>, ';
+      html += '<span style="color:#8B7355;font-weight:700;">결단과 원칙</span>, ';
+      html += '<span style="color:#4A90E2;font-weight:700;">사색과 응축</span>.<br><br>';
+      html += '모든 괘는 각각의 저 다섯 가지 결을 지닙니다.<br>검사 결과 상의 데이터를 통해 <strong>상괘와 하괘가 만나 하나의 괘가 되듯, 합쳐져 어우러지는 에너지의 결</strong>은 아래 차트와 같습니다.';
+      html += '</div>';
+
+      html += '<div style="background: #fff; border: 1px solid #eee; border-radius: 18px; padding: 30px 24px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">';
+      html += '<div style="text-align:center;font-family:\'Noto Serif KR\', serif;font-weight:800;color:#002D62;font-size:1.15rem;margin-bottom:4px;">' + name + '의 오행 분포</div>';
+      html += '<div style="text-align:center;font-size:0.8rem;color:#999;margin-bottom:10px;">(상괘와 하괘의 합산 비율)</div>';
+      html += pentagonSVG(wu, '#002D62');
+      html += '<div style="margin-top:20px;padding:14px 18px;background:rgba(212,175,55,0.07);border-radius:10px;font-family:\'Noto Serif KR\', serif;font-size:0.95rem;color:#333;line-height:1.7;text-align:center;word-break:keep-all;">' + phrase.text + '</div>';
+      html += '</div>';
+
+      html += '<div style="background: #fff; border: 1px solid #eee; border-radius: 18px; padding: 28px 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">';
+      html += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed #eee;">';
+      html += '<div style="flex-shrink:0;width:64px;height:64px;border-radius:50%;background:' + topEl.color + '15;border:3px solid ' + topEl.color + ';display:flex;align-items:center;justify-content:center;font-family:serif;font-size:1.8rem;font-weight:bold;color:' + topEl.color + ';">' + top1.e + '</div>';
+      html += '<div style="flex:1;">';
+      html += '<div style="font-family:\'Noto Serif KR\', serif;font-weight:800;color:' + topEl.color + ';font-size:1.1rem;margin-bottom:3px;">나의 주축: ' + trait.me + '</div>';
+      html += '<div style="font-size:0.88rem;color:#666;line-height:1.6;word-break:keep-all;">' + trait.summary + ' — 전체의 <strong>' + top1.pct.toFixed(0) + '%</strong>로 가장 강하게 흐릅니다.</div>';
+      html += '</div>';
+      html += '</div>';
+
+      html += '<div style="font-family:\'Noto Serif KR\', serif;font-weight:700;color:#333;font-size:0.95rem;margin-bottom:14px;letter-spacing:-0.01em;">💫 나의 기운을 둘러싼 오행 관계</div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="wuxing-relation-grid">';
+
+      // 4개 카드
+      const cards = [
+        { ico:'🌿', tag:'SUPPORTING · 나를 돕는 결', col:'#6B8E5A', bg:'rgba(107,142,90,0.05)', bd:'rgba(107,142,90,0.2)', body:trait.helped },
+        { ico:'🌊', tag:'NURTURING · 내가 돕는 결', col:'#4A90E2', bg:'rgba(74,144,226,0.05)', bd:'rgba(74,144,226,0.2)', body:trait.helps },
+        { ico:'⚠️', tag:'RESTRAINING · 나를 제어하는 결', col:'#B8924A', bg:'rgba(184,146,74,0.05)', bd:'rgba(184,146,74,0.25)', body:trait.drained },
+        { ico:'⚡', tag:'CONTROLLING · 내가 제어하는 결', col:'#A63D40', bg:'rgba(166,61,64,0.05)', bd:'rgba(166,61,64,0.2)', body:trait.drains }
+      ];
+      cards.forEach(c => {
+        html += '<div style="background:' + c.bg + ';border:1px solid ' + c.bd + ';border-radius:10px;padding:14px 16px;">';
+        html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+        html += '<span style="font-size:1.1rem;">' + c.ico + '</span>';
+        html += '<span style="font-family:\'Noto Serif KR\', serif;font-size:0.78rem;letter-spacing:2px;color:' + c.col + ';font-weight:700;">' + c.tag + '</span>';
+        html += '</div>';
+        html += '<div style="font-size:0.85rem;color:#333;line-height:1.65;word-break:keep-all;">' + c.body + '</div>';
+        html += '</div>';
+      });
+
+      html += '</div>';
+
+      // 이중 축일 때 부주축 안내
+      if(phrase.type === '이중 축'){
+        html += '<div style="margin-top:18px;padding:14px 18px;background:#fafafa;border-radius:10px;border-left:3px solid ' + WU_CHAR[top2.e].color + ';">';
+        html += '<div style="font-family:\'Noto Serif KR\', serif;font-size:0.85rem;color:#555;line-height:1.7;word-break:keep-all;">';
+        html += '<strong style="color:' + WU_CHAR[top2.e].color + ';">' + WU_CHAR[top2.e].trait + ' (' + top2.pct.toFixed(0) + '%)</strong>의 결도 주축과 나란히 강하게 흐릅니다. 두 결이 서로를 보완하며 함께 작동하는 양면성을 지닙니다.';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      html += '</div>';
+      html += '</div>';
+
+      return html;
+    } catch(e) {
+      console.warn('[오행섹션] 렌더 실패:', e.message);
+      return '';
+    }
+  };
+})();
 </script>
 </body>
 </html>
